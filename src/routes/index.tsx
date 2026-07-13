@@ -56,7 +56,7 @@ function Navbar() {
     { label: "Features", href: "#features" },
     { label: "How it Works", href: "#how" },
     { label: "About", href: "#about" },
-    { label: "Contact", href: "#contact" },
+    { label: "Contact", href: "/contact", to: "/contact" as const },
   ];
 
   return (
@@ -70,7 +70,11 @@ function Navbar() {
         <ul className="hidden lg:flex items-center gap-8 text-sm font-medium text-foreground/80">
           {links.map((l) => (
             <li key={l.href}>
-              <a href={l.href} className="hover:text-primary transition-colors">{l.label}</a>
+              {l.to ? (
+                <Link to={l.to} className="hover:text-primary transition-colors">{l.label}</Link>
+              ) : (
+                <a href={l.href} className="hover:text-primary transition-colors">{l.label}</a>
+              )}
             </li>
           ))}
         </ul>
@@ -111,13 +115,23 @@ function Navbar() {
           <ul className="flex flex-col gap-1">
             {links.map((l) => (
               <li key={l.href}>
-                <a
-                  href={l.href}
-                  onClick={() => setOpen(false)}
-                  className="block px-3 py-2.5 rounded-xl hover:bg-primary/10 text-foreground/85 font-medium"
-                >
-                  {l.label}
-                </a>
+                {l.to ? (
+                  <Link
+                    to={l.to}
+                    onClick={() => setOpen(false)}
+                    className="block px-3 py-2.5 rounded-xl hover:bg-primary/10 text-foreground/85 font-medium"
+                  >
+                    {l.label}
+                  </Link>
+                ) : (
+                  <a
+                    href={l.href}
+                    onClick={() => setOpen(false)}
+                    className="block px-3 py-2.5 rounded-xl hover:bg-primary/10 text-foreground/85 font-medium"
+                  >
+                    {l.label}
+                  </a>
+                )}
               </li>
             ))}
           </ul>
