@@ -87,8 +87,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "ZuZo AI — Your Smart Pet Care Companion" },
       { name: "twitter:description", content: "AI-powered pet care: instant answers, food recommendations, training tips, and nearby vet support in one intelligent platform." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/eed3e292-8ac1-4c6a-9d24-59541513a047" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/eed3e292-8ac1-4c6a-9d24-59541513a047" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/83dc4999-4c59-4f3c-bef2-c4d7935b4d47" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/83dc4999-4c59-4f3c-bef2-c4d7935b4d47" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
