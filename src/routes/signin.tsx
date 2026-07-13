@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { AuthShell, Divider, GoogleIcon } from "@/components/AuthShell";
 
-export const Route = createFileRoute("/auth")({
+export const Route = createFileRoute("/signin")({
   head: () => ({
     meta: [
       { title: "Sign In — ZuZo AI" },
@@ -91,8 +91,8 @@ function SignInPage() {
       footer={
         <>
           Don't have an account?{" "}
-          <Link to="/auth/signup" className="font-semibold text-primary hover:text-primary-glow transition-colors">
-            Create Account
+          <Link to="/signup" className="font-semibold text-primary hover:text-primary-glow transition-colors">
+            Sign Up
           </Link>
         </>
       }

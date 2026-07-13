@@ -5,9 +5,9 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
-import { AuthShell, Divider, GoogleIcon } from "@/components/AuthShell";
+import { AuthShell, GoogleIcon } from "@/components/AuthShell";
 
-export const Route = createFileRoute("/auth/signup")({
+export const Route = createFileRoute("/signup")({
   head: () => ({
     meta: [
       { title: "Create Account — ZuZo AI" },
@@ -85,7 +85,7 @@ function SignUpPage() {
         toast.success("Welcome to ZuZo AI! 🐾");
       } else {
         toast.success("Check your inbox to confirm your email.");
-        navigate({ to: "/auth" });
+        navigate({ to: "/signin" });
       }
     } finally {
       setLoading(false);
@@ -115,12 +115,28 @@ function SignUpPage() {
       footer={
         <>
           Already have an account?{" "}
-          <Link to="/auth" className="font-semibold text-primary hover:text-primary-glow transition-colors">
+          <Link to="/signin" className="font-semibold text-primary hover:text-primary-glow transition-colors">
             Sign In
           </Link>
         </>
       }
     >
+      <button
+        type="button"
+        onClick={onGoogle}
+        disabled={googleLoading}
+        className="w-full inline-flex items-center justify-center gap-3 rounded-2xl bg-white border border-border h-12 px-6 font-medium text-foreground shadow-sm hover:shadow-md hover:border-primary/30 hover:bg-secondary/40 transition-all disabled:opacity-70"
+      >
+        {googleLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <GoogleIcon />}
+        <span>Sign up with Google</span>
+      </button>
+
+      <div className="my-5 flex items-center gap-4">
+        <div className="h-px flex-1 bg-border" />
+        <span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">or continue with email</span>
+        <div className="h-px flex-1 bg-border" />
+      </div>
+
       <form onSubmit={onSubmit} className="space-y-4" noValidate>
         <Field id="fullName" label="Full Name" type="text" value={fullName} onChange={setFullName}
           icon={<User className="h-4 w-4" />} placeholder="Jane Doe" autoComplete="name" required />
@@ -152,18 +168,6 @@ function SignUpPage() {
           )}
         </button>
       </form>
-
-      <Divider />
-
-      <button
-        type="button"
-        onClick={onGoogle}
-        disabled={googleLoading}
-        className="w-full inline-flex items-center justify-center gap-3 rounded-2xl bg-white border border-border h-12 px-6 font-medium text-foreground shadow-sm hover:shadow-md hover:border-primary/30 hover:bg-secondary/40 transition-all disabled:opacity-70"
-      >
-        {googleLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <GoogleIcon />}
-        <span>Continue with Google</span>
-      </button>
     </AuthShell>
   );
 }

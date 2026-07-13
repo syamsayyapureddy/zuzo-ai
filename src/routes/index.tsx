@@ -3,9 +3,12 @@ import {
   Brain, PawPrint, Menu, X, Sparkles, ArrowRight, Check,
   Bot, BookOpen, MapPin, Beef, Dumbbell, Heart, ShieldCheck,
   Clock, Utensils, MessageCircle, Instagram, Facebook, Twitter, Linkedin,
+  LayoutDashboard, LogOut,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import heroImg from "@/assets/hero-pet.jpg";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -28,12 +31,25 @@ function Logo({ className = "" }: { className?: string }) {
 function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [isAuthed, setIsAuthed] = useState(false);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
     onScroll();
     window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
+    supabase.auth.getSession().then(({ data }) => setIsAuthed(!!data.session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setIsAuthed(!!session);
+    });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      sub.subscription.unsubscribe();
+    };
   }, []);
+
+  async function onSignOut() {
+    await supabase.auth.signOut();
+    toast.success("Signed out");
+  }
 
   const links = [
     { label: "Home", href: "#home" },
@@ -59,12 +75,28 @@ function Navbar() {
           ))}
         </ul>
         <div className="hidden lg:flex items-center gap-3">
-          <Link to="/auth" className="px-4 py-2 text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
-            Sign In
-          </Link>
-          <Link to="/auth/signup" className="group px-5 py-2.5 rounded-full gradient-primary text-white text-sm font-semibold shadow-soft hover:shadow-glow transition-all hover:-translate-y-0.5 inline-flex items-center gap-1.5">
-            Get Started <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </Link>
+          {isAuthed ? (
+            <>
+              <Link to="/dashboard" className="px-4 py-2 text-sm font-medium text-foreground/80 hover:text-primary transition-colors inline-flex items-center gap-1.5">
+                <LayoutDashboard className="h-4 w-4" /> Dashboard
+              </Link>
+              <button
+                onClick={onSignOut}
+                className="group px-5 py-2.5 rounded-full gradient-primary text-white text-sm font-semibold shadow-soft hover:shadow-glow transition-all hover:-translate-y-0.5 inline-flex items-center gap-1.5"
+              >
+                <LogOut className="h-4 w-4" /> Sign Out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/signin" className="px-4 py-2 text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
+                Sign In
+              </Link>
+              <Link to="/signup" className="group px-5 py-2.5 rounded-full gradient-primary text-white text-sm font-semibold shadow-soft hover:shadow-glow transition-all hover:-translate-y-0.5 inline-flex items-center gap-1.5">
+                Sign Up <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            </>
+          )}
         </div>
         <button
           className="lg:hidden h-10 w-10 grid place-items-center rounded-xl glass"
@@ -90,8 +122,17 @@ function Navbar() {
             ))}
           </ul>
           <div className="mt-3 flex gap-2">
-            <Link to="/auth" onClick={() => setOpen(false)} className="flex-1 text-center px-4 py-2.5 rounded-xl border border-border font-medium">Sign In</Link>
-            <Link to="/auth/signup" onClick={() => setOpen(false)} className="flex-1 text-center px-4 py-2.5 rounded-xl gradient-primary text-white font-semibold">Get Started</Link>
+            {isAuthed ? (
+              <>
+                <Link to="/dashboard" onClick={() => setOpen(false)} className="flex-1 text-center px-4 py-2.5 rounded-xl border border-border font-medium">Dashboard</Link>
+                <button onClick={() => { setOpen(false); onSignOut(); }} className="flex-1 text-center px-4 py-2.5 rounded-xl gradient-primary text-white font-semibold">Sign Out</button>
+              </>
+            ) : (
+              <>
+                <Link to="/signin" onClick={() => setOpen(false)} className="flex-1 text-center px-4 py-2.5 rounded-xl border border-border font-medium">Sign In</Link>
+                <Link to="/signup" onClick={() => setOpen(false)} className="flex-1 text-center px-4 py-2.5 rounded-xl gradient-primary text-white font-semibold">Sign Up</Link>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -378,10 +419,10 @@ function CTA() {
             Join thousands of pet owners using AI to keep their pets healthier, happier, and safer.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link to="/auth/signup" className="px-7 py-3.5 rounded-full bg-white text-primary-glow font-semibold shadow-soft hover:-translate-y-0.5 transition-all inline-flex items-center gap-2">
+            <Link to="/signup" className="px-7 py-3.5 rounded-full bg-white text-primary-glow font-semibold shadow-soft hover:-translate-y-0.5 transition-all inline-flex items-center gap-2">
               Get Started <ArrowRight className="h-4 w-4" />
             </Link>
-            <Link to="/auth" className="px-7 py-3.5 rounded-full bg-white/15 backdrop-blur border border-white/30 text-white font-semibold hover:bg-white/25 transition-all inline-flex items-center gap-2">
+            <Link to="/signin" className="px-7 py-3.5 rounded-full bg-white/15 backdrop-blur border border-white/30 text-white font-semibold hover:bg-white/25 transition-all inline-flex items-center gap-2">
               <MessageCircle className="h-4 w-4" /> Sign In
             </Link>
           </div>
