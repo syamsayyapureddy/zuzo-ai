@@ -70,7 +70,11 @@ function Navbar() {
         <ul className="hidden lg:flex items-center gap-8 text-sm font-medium text-foreground/80">
           {links.map((l) => (
             <li key={l.href}>
-              <a href={l.href} className="hover:text-primary transition-colors">{l.label}</a>
+              {l.to ? (
+                <Link to={l.to} className="hover:text-primary transition-colors">{l.label}</Link>
+              ) : (
+                <a href={l.href} className="hover:text-primary transition-colors">{l.label}</a>
+              )}
             </li>
           ))}
         </ul>
