@@ -419,10 +419,10 @@ function CTA() {
             Join thousands of pet owners using AI to keep their pets healthier, happier, and safer.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link to="/auth/signup" className="px-7 py-3.5 rounded-full bg-white text-primary-glow font-semibold shadow-soft hover:-translate-y-0.5 transition-all inline-flex items-center gap-2">
+            <Link to="/signup" className="px-7 py-3.5 rounded-full bg-white text-primary-glow font-semibold shadow-soft hover:-translate-y-0.5 transition-all inline-flex items-center gap-2">
               Get Started <ArrowRight className="h-4 w-4" />
             </Link>
-            <Link to="/auth" className="px-7 py-3.5 rounded-full bg-white/15 backdrop-blur border border-white/30 text-white font-semibold hover:bg-white/25 transition-all inline-flex items-center gap-2">
+            <Link to="/signin" className="px-7 py-3.5 rounded-full bg-white/15 backdrop-blur border border-white/30 text-white font-semibold hover:bg-white/25 transition-all inline-flex items-center gap-2">
               <MessageCircle className="h-4 w-4" /> Sign In
             </Link>
           </div>
