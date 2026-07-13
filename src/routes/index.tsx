@@ -115,13 +115,23 @@ function Navbar() {
           <ul className="flex flex-col gap-1">
             {links.map((l) => (
               <li key={l.href}>
-                <a
-                  href={l.href}
-                  onClick={() => setOpen(false)}
-                  className="block px-3 py-2.5 rounded-xl hover:bg-primary/10 text-foreground/85 font-medium"
-                >
-                  {l.label}
-                </a>
+                {l.to ? (
+                  <Link
+                    to={l.to}
+                    onClick={() => setOpen(false)}
+                    className="block px-3 py-2.5 rounded-xl hover:bg-primary/10 text-foreground/85 font-medium"
+                  >
+                    {l.label}
+                  </Link>
+                ) : (
+                  <a
+                    href={l.href}
+                    onClick={() => setOpen(false)}
+                    className="block px-3 py-2.5 rounded-xl hover:bg-primary/10 text-foreground/85 font-medium"
+                  >
+                    {l.label}
+                  </a>
+                )}
               </li>
             ))}
           </ul>
