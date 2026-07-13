@@ -3,9 +3,12 @@ import {
   Brain, PawPrint, Menu, X, Sparkles, ArrowRight, Check,
   Bot, BookOpen, MapPin, Beef, Dumbbell, Heart, ShieldCheck,
   Clock, Utensils, MessageCircle, Instagram, Facebook, Twitter, Linkedin,
+  LayoutDashboard, LogOut,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import heroImg from "@/assets/hero-pet.jpg";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   component: Home,
