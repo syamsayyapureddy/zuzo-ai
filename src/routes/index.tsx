@@ -56,7 +56,7 @@ function Navbar() {
     { label: "Features", href: "#features" },
     { label: "How it Works", href: "#how" },
     { label: "About", href: "#about" },
-    { label: "Contact", href: "#contact" },
+    { label: "Contact", href: "/contact", to: "/contact" as const },
   ];
 
   return (
