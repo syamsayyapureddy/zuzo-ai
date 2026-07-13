@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Brain, PawPrint, Menu, X, Sparkles, ArrowRight, Check,
   Bot, BookOpen, MapPin, Beef, Dumbbell, Heart, ShieldCheck,
@@ -59,12 +59,12 @@ function Navbar() {
           ))}
         </ul>
         <div className="hidden lg:flex items-center gap-3">
-          <button className="px-4 py-2 text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
+          <Link to="/auth" className="px-4 py-2 text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
             Sign In
-          </button>
-          <button className="group px-5 py-2.5 rounded-full gradient-primary text-white text-sm font-semibold shadow-soft hover:shadow-glow transition-all hover:-translate-y-0.5 inline-flex items-center gap-1.5">
+          </Link>
+          <Link to="/auth/signup" className="group px-5 py-2.5 rounded-full gradient-primary text-white text-sm font-semibold shadow-soft hover:shadow-glow transition-all hover:-translate-y-0.5 inline-flex items-center gap-1.5">
             Get Started <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </button>
+          </Link>
         </div>
         <button
           className="lg:hidden h-10 w-10 grid place-items-center rounded-xl glass"
@@ -90,8 +90,8 @@ function Navbar() {
             ))}
           </ul>
           <div className="mt-3 flex gap-2">
-            <button className="flex-1 px-4 py-2.5 rounded-xl border border-border font-medium">Sign In</button>
-            <button className="flex-1 px-4 py-2.5 rounded-xl gradient-primary text-white font-semibold">Get Started</button>
+            <Link to="/auth" onClick={() => setOpen(false)} className="flex-1 text-center px-4 py-2.5 rounded-xl border border-border font-medium">Sign In</Link>
+            <Link to="/auth/signup" onClick={() => setOpen(false)} className="flex-1 text-center px-4 py-2.5 rounded-xl gradient-primary text-white font-semibold">Get Started</Link>
           </div>
         </div>
       )}
@@ -378,12 +378,12 @@ function CTA() {
             Join thousands of pet owners using AI to keep their pets healthier, happier, and safer.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <button className="px-7 py-3.5 rounded-full bg-white text-primary-glow font-semibold shadow-soft hover:-translate-y-0.5 transition-all inline-flex items-center gap-2">
+            <Link to="/auth/signup" className="px-7 py-3.5 rounded-full bg-white text-primary-glow font-semibold shadow-soft hover:-translate-y-0.5 transition-all inline-flex items-center gap-2">
               Get Started <ArrowRight className="h-4 w-4" />
-            </button>
-            <button className="px-7 py-3.5 rounded-full bg-white/15 backdrop-blur border border-white/30 text-white font-semibold hover:bg-white/25 transition-all inline-flex items-center gap-2">
-              <MessageCircle className="h-4 w-4" /> Ask AI
-            </button>
+            </Link>
+            <Link to="/auth" className="px-7 py-3.5 rounded-full bg-white/15 backdrop-blur border border-white/30 text-white font-semibold hover:bg-white/25 transition-all inline-flex items-center gap-2">
+              <MessageCircle className="h-4 w-4" /> Sign In
+            </Link>
           </div>
         </div>
       </div>
