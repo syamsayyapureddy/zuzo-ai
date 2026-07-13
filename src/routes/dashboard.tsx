@@ -28,7 +28,7 @@ function Dashboard() {
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        navigate({ to: "/auth", replace: true });
+        navigate({ to: "/signin", replace: true });
         return;
       }
       const { data } = await supabase
@@ -42,7 +42,7 @@ function Dashboard() {
       }
     })();
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (!session) navigate({ to: "/auth", replace: true });
+      if (!session) navigate({ to: "/signin", replace: true });
     });
     return () => { mounted = false; sub.subscription.unsubscribe(); };
   }, [navigate]);
