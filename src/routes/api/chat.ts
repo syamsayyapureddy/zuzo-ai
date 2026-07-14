@@ -6,7 +6,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 const SYSTEM_PROMPT = `You are ZuZo AI 🐾, a warm, expert AI pet care companion. You help pet owners with questions about pet health, nutrition, behavior, vaccinations, grooming, training, and daily care. Be friendly, concise, and practical. Use bullet points when helpful. Always recommend consulting a licensed veterinarian for serious or urgent medical issues, and clearly flag emergencies (e.g. difficulty breathing, seizures, poisoning, severe bleeding) with an urgent note to seek in-person vet care immediately.`;
 
-const GEMINI_MODEL = "gemini-2.5-flash";
+const GEMINI_MODEL = "gemini-flash-latest";
 
 export const Route = createFileRoute("/api/chat")({
   server: {
