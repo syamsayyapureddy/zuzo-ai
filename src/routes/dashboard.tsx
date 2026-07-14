@@ -1,9 +1,10 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { LogOut, PawPrint, Sparkles, Loader2 } from "lucide-react";
+import { LogOut, PawPrint, Sparkles, Loader2, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BrandMark } from "@/components/AuthShell";
+import { FloatingAssistantButton } from "@/components/FloatingAssistantButton";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -88,9 +89,19 @@ function Dashboard() {
           </p>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            <Link
+              to="/assistant"
+              className="glass rounded-2xl p-5 hover:shadow-glow transition-all hover:-translate-y-0.5 text-left group"
+            >
+              <div className="h-10 w-10 rounded-xl gradient-cta grid place-items-center shadow-soft">
+                <MessageCircle className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <div className="mt-3 font-semibold">AI Assistant</div>
+              <div className="text-sm text-muted-foreground">Chat with ZuZo about your pet</div>
+              <div className="mt-2 text-xs font-medium text-primary group-hover:underline">Open chat →</div>
+            </Link>
             {[
               { icon: PawPrint, label: "Care Tips" },
-              { icon: Sparkles, label: "AI Assistant" },
               { icon: PawPrint, label: "Nearby Vets" },
             ].map((c, i) => (
               <div key={i} className="glass rounded-2xl p-5 hover:shadow-soft transition-all hover:-translate-y-0.5">
@@ -102,6 +113,7 @@ function Dashboard() {
           </div>
         </div>
       </main>
+      <FloatingAssistantButton />
     </div>
   );
 }
