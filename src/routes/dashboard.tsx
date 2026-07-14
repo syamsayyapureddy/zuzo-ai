@@ -1,9 +1,10 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { LogOut, PawPrint, Sparkles, Loader2 } from "lucide-react";
+import { LogOut, PawPrint, Sparkles, Loader2, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BrandMark } from "@/components/AuthShell";
+import { FloatingAssistantButton } from "@/components/FloatingAssistantButton";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
