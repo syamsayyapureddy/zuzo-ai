@@ -6,7 +6,22 @@ import type { Database } from "@/integrations/supabase/types";
 
 const SYSTEM_PROMPT = `You are ZuZo AI 🐾, a warm, expert AI pet care companion. You help pet owners with questions about pet health, nutrition, behavior, vaccinations, grooming, training, and daily care. Be friendly, concise, and practical. Use bullet points when helpful. Always recommend consulting a licensed veterinarian for serious or urgent medical issues, and clearly flag emergencies (e.g. difficulty breathing, seizures, poisoning, severe bleeding) with an urgent note to seek in-person vet care immediately.`;
 
-const GEMINI_MODEL = "gemini-flash-latest";
+const GEMINI_MODEL = "gemini-3.5-flash";
+
+function getGeminiErrorDetails(error: unknown) {
+  if (!(error instanceof Error)) return "Unknown Gemini error";
+  const apiError = error as Error & {
+    statusCode?: number;
+    responseBody?: string;
+    responseHeaders?: Record<string, string>;
+  };
+  return JSON.stringify({
+    name: apiError.name,
+    message: apiError.message,
+    statusCode: apiError.statusCode,
+    responseBody: apiError.responseBody,
+  });
+}
 
 export const Route = createFileRoute("/api/chat")({
   server: {
@@ -42,8 +57,8 @@ export const Route = createFileRoute("/api/chat")({
         // Google Gemini exposes an OpenAI-compatible endpoint.
         const gemini = createOpenAICompatible({
           name: "google-gemini",
-          baseURL: "https://generativelanguage.googleapis.com/v1beta/openai",
-          headers: { Authorization: `Bearer ${geminiKey}` },
+          baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
+          apiKey: geminiKey,
         });
         const model = gemini(GEMINI_MODEL);
 
@@ -70,7 +85,7 @@ export const Route = createFileRoute("/api/chat")({
             system: SYSTEM_PROMPT,
             messages: convertToModelMessages(messages),
             onError: (err) => {
-              console.error("[gemini] stream error", err);
+              console.error("[gemini] stream error", getGeminiErrorDetails(err.error));
             },
           });
 
@@ -92,7 +107,7 @@ export const Route = createFileRoute("/api/chat")({
             },
           });
         } catch (err) {
-          console.error("[gemini] request failed", err);
+          console.error("[gemini] request failed", getGeminiErrorDetails(err));
           const message = err instanceof Error ? err.message : "Unknown error";
           return new Response(`Gemini request failed: ${message}`, { status: 502 });
         }
