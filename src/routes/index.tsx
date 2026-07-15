@@ -154,7 +154,22 @@ function Navbar() {
   );
 }
 
+const POST_AUTH_REDIRECT_KEY = "zuzo.postAuthRedirect";
+
 function Hero() {
+  async function onAskAI() {
+    const { data } = await supabase.auth.getSession();
+    if (data.session) {
+      window.location.assign("/assistant");
+    } else {
+      try { sessionStorage.setItem(POST_AUTH_REDIRECT_KEY, "/assistant"); } catch {}
+      window.location.assign("/signup");
+    }
+  }
+  function onLearnMore() {
+    document.getElementById("features")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   return (
     <section id="home" className="relative pt-28 sm:pt-32 pb-16 sm:pb-24 overflow-hidden gradient-hero-bg">
       <div aria-hidden className="absolute -top-20 -left-24 h-96 w-96 rounded-full bg-primary/20 blur-3xl animate-blob" />
