@@ -46,14 +46,22 @@ function SignUpPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
 
   useEffect(() => {
+    const getRedirect = () => {
+      try {
+        const t = sessionStorage.getItem("zuzo.postAuthRedirect");
+        if (t) sessionStorage.removeItem("zuzo.postAuthRedirect");
+        return (t as "/assistant" | "/dashboard" | null) ?? "/dashboard";
+      } catch { return "/dashboard"; }
+    };
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard", replace: true });
+      if (data.session) navigate({ to: getRedirect(), replace: true });
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session) navigate({ to: "/dashboard", replace: true });
+      if (session) navigate({ to: getRedirect(), replace: true });
     });
     return () => sub.subscription.unsubscribe();
   }, [navigate]);
+
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
