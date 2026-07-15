@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SigninRouteImport } from './routes/signin'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AssistantRouteImport } from './routes/assistant'
@@ -25,6 +26,11 @@ const SignupRoute = SignupRouteImport.update({
 const SigninRoute = SigninRouteImport.update({
   id: '/signin',
   path: '/signin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/assistant': typeof AssistantRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
+  '/profile': typeof ProfileRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/api/chat': typeof ApiChatRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/assistant': typeof AssistantRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
+  '/profile': typeof ProfileRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/api/chat': typeof ApiChatRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/assistant': typeof AssistantRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
+  '/profile': typeof ProfileRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/api/chat': typeof ApiChatRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/contact'
     | '/dashboard'
+    | '/profile'
     | '/signin'
     | '/signup'
     | '/api/chat'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/contact'
     | '/dashboard'
+    | '/profile'
     | '/signin'
     | '/signup'
     | '/api/chat'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/contact'
     | '/dashboard'
+    | '/profile'
     | '/signin'
     | '/signup'
     | '/api/chat'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   AssistantRoute: typeof AssistantRoute
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
+  ProfileRoute: typeof ProfileRoute
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
   ApiChatRoute: typeof ApiChatRoute
@@ -135,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/signin'
       fullPath: '/signin'
       preLoaderRoute: typeof SigninRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   AssistantRoute: AssistantRoute,
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
+  ProfileRoute: ProfileRoute,
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
   ApiChatRoute: ApiChatRoute,
