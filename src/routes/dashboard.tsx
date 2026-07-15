@@ -1,10 +1,10 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { LogOut, PawPrint, Sparkles, Loader2, MessageCircle } from "lucide-react";
-import { toast } from "sonner";
+import { Sparkles, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { BrandMark } from "@/components/AuthShell";
+import { AppHeader } from "@/components/AppHeader";
 import { FloatingAssistantButton } from "@/components/FloatingAssistantButton";
+import { features } from "@/lib/features";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -48,11 +48,6 @@ function Dashboard() {
     return () => { mounted = false; sub.subscription.unsubscribe(); };
   }, [navigate]);
 
-  async function onSignOut() {
-    await supabase.auth.signOut();
-    toast.success("Signed out");
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen grid place-items-center gradient-hero-bg">
@@ -65,17 +60,9 @@ function Dashboard() {
 
   return (
     <div className="min-h-screen gradient-hero-bg">
-      <header className="mx-auto max-w-5xl px-5 sm:px-8 h-16 sm:h-18 flex items-center justify-between">
-        <BrandMark />
-        <button
-          onClick={onSignOut}
-          className="inline-flex items-center gap-2 rounded-2xl glass px-4 h-10 text-sm font-medium hover:shadow-soft transition-all"
-        >
-          <LogOut className="h-4 w-4" /> Sign out
-        </button>
-      </header>
+      <AppHeader />
 
-      <main className="mx-auto max-w-5xl px-5 sm:px-8 py-10 sm:py-16">
+      <main className="mx-auto max-w-5xl px-5 sm:px-8 py-8 sm:py-12">
         <div className="glass rounded-3xl p-8 sm:p-12 shadow-glow animate-fade-up">
           <div className="inline-flex items-center gap-2 rounded-full glass-strong px-3 py-1 text-xs font-medium text-primary">
             <Sparkles className="h-3.5 w-3.5" /> You're signed in
@@ -87,31 +74,46 @@ function Dashboard() {
             Your ZuZo AI dashboard is ready. Start exploring smart care tips, food recommendations,
             and nearby vet support tailored for {profile?.pet_name || "your pet"}.
           </p>
-
-          <div className="mt-8 grid gap-4 sm:grid-cols-3">
-            <Link
-              to="/assistant"
-              className="glass rounded-2xl p-5 hover:shadow-glow transition-all hover:-translate-y-0.5 text-left group"
-            >
-              <div className="h-10 w-10 rounded-xl gradient-cta grid place-items-center shadow-soft">
-                <MessageCircle className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <div className="mt-3 font-semibold">AI Assistant</div>
-              <div className="text-sm text-muted-foreground">Chat with ZuZo about your pet</div>
-              <div className="mt-2 text-xs font-medium text-primary group-hover:underline">Open chat →</div>
-            </Link>
-            {[
-              { icon: PawPrint, label: "Care Tips" },
-              { icon: PawPrint, label: "Nearby Vets" },
-            ].map((c, i) => (
-              <div key={i} className="glass rounded-2xl p-5 hover:shadow-soft transition-all hover:-translate-y-0.5">
-                <c.icon className="h-6 w-6 text-primary" />
-                <div className="mt-3 font-semibold">{c.label}</div>
-                <div className="text-sm text-muted-foreground">Coming soon</div>
-              </div>
-            ))}
-          </div>
         </div>
+
+        <section className="mt-8 sm:mt-10">
+          <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight mb-4 sm:mb-6">
+            Features
+          </h2>
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {features.map((f) => {
+              const inner = (
+                <div className="glass rounded-2xl p-5 h-full transition-all hover:-translate-y-0.5 hover:shadow-glow flex flex-col">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="h-10 w-10 rounded-xl gradient-cta grid place-items-center shadow-soft">
+                      <f.icon className="h-5 w-5 text-primary-foreground" />
+                    </div>
+                    {f.to ? (
+                      <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-full bg-primary/10 text-primary">
+                        Open
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-full bg-muted text-muted-foreground">
+                        Coming Soon
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-3 font-semibold">{f.title}</div>
+                  <div className="text-sm text-muted-foreground">{f.description}</div>
+                </div>
+              );
+              return f.to ? (
+                <Link key={f.title} to={f.to} className="text-left">
+                  {inner}
+                </Link>
+              ) : (
+                <div key={f.title} aria-disabled className="cursor-not-allowed opacity-95">
+                  {inner}
+                </div>
+              );
+            })}
+          </div>
+        </section>
       </main>
       <FloatingAssistantButton />
     </div>
