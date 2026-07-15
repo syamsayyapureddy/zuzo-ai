@@ -154,7 +154,22 @@ function Navbar() {
   );
 }
 
+const POST_AUTH_REDIRECT_KEY = "zuzo.postAuthRedirect";
+
 function Hero() {
+  async function onAskAI() {
+    const { data } = await supabase.auth.getSession();
+    if (data.session) {
+      window.location.assign("/assistant");
+    } else {
+      try { sessionStorage.setItem(POST_AUTH_REDIRECT_KEY, "/assistant"); } catch {}
+      window.location.assign("/signup");
+    }
+  }
+  function onLearnMore() {
+    document.getElementById("features")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   return (
     <section id="home" className="relative pt-28 sm:pt-32 pb-16 sm:pb-24 overflow-hidden gradient-hero-bg">
       <div aria-hidden className="absolute -top-20 -left-24 h-96 w-96 rounded-full bg-primary/20 blur-3xl animate-blob" />
@@ -182,13 +197,14 @@ function Hero() {
             Get instant AI-powered answers, personalized pet care guidance, food recommendations, training tips, and nearby veterinary support—all in one intelligent platform.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
-            <button className="group px-6 py-3.5 rounded-full gradient-primary text-white font-semibold shadow-glow hover:-translate-y-0.5 transition-all inline-flex items-center gap-2">
+            <button onClick={onAskAI} className="group px-6 py-3.5 rounded-full gradient-primary text-white font-semibold shadow-glow hover:-translate-y-0.5 transition-all inline-flex items-center gap-2">
               <MessageCircle className="h-4 w-4" /> Ask AI
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </button>
-            <button className="px-6 py-3.5 rounded-full glass font-semibold text-foreground hover:bg-white/90 transition-all">
+            <button onClick={onLearnMore} className="px-6 py-3.5 rounded-full glass font-semibold text-foreground hover:bg-white/90 transition-all">
               Learn More
             </button>
+
           </div>
           <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-foreground/75">
             {["AI Powered", "Trusted Pet Care", "24/7 Assistance"].map((b) => (
