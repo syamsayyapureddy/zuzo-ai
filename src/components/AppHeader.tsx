@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Menu, Bell, Home, Bot, User, Settings, LogOut } from "lucide-react";
+import { Menu, Bell, Home, Bot, BookOpen, User, Settings, LogOut } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -9,6 +9,7 @@ import { BrandMark } from "@/components/AuthShell";
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: Home },
   { to: "/assistant", label: "AI Assistant", icon: Bot },
+  { to: "/knowledge-base", label: "Knowledge Base", icon: BookOpen },
   { to: "/profile", label: "Profile", icon: User },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
