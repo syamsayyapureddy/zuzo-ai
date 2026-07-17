@@ -11,13 +11,16 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
 // ---- Config ---------------------------------------------------------------
-const GEMINI_MODEL = "gemini-2.5-flash";
+const CHAT_MODEL = "google/gemini-2.5-flash"; // via Lovable AI Gateway
 const EMBED_MODEL = "gemini-embedding-001"; // MUST match KB ingestion
 const EMBED_DIMS = 768;
 const MAX_CHUNKS = 5;
 const MIN_SIMILARITY = 0.55;
 const DEDUP_JACCARD = 0.85;
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
+const LOVABLE_AI_BASE = "https://ai.gateway.lovable.dev/v1";
+const GENERIC_ERROR_FALLBACK =
+  "Sorry, something went wrong while processing your request. Please try again.";
 
 const NO_KB_MATCH_FALLBACK =
   "I could not find enough information about this in the ZuZo AI Knowledge Base. Please consult a licensed veterinarian for personalised advice regarding your pet.";
