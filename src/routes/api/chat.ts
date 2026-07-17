@@ -61,7 +61,7 @@ const EMERGENCY_PATTERNS: RegExp[] = [
   /choking/i,
 ];
 
-function isEmergency(text: string): boolean {
+export function isEmergency(text: string): boolean {
   return EMERGENCY_PATTERNS.some((r) => r.test(text));
 }
 
