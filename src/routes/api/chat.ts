@@ -74,7 +74,7 @@ const HOWAREYOU_RE = /^(how\s*are\s*you|how'?s\s*it\s*going|what'?s\s*up|sup|how
 
 type SmallTalk = "greeting" | "thanks" | "bye" | "howareyou" | null;
 
-function detectSmallTalk(text: string): SmallTalk {
+export function detectSmallTalk(text: string): SmallTalk {
   const t = text.trim();
   if (!t || t.length > 60) return null;
   if (GREETING_RE.test(t)) return "greeting";
