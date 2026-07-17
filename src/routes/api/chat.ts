@@ -61,9 +61,42 @@ const EMERGENCY_PATTERNS: RegExp[] = [
   /choking/i,
 ];
 
-function isEmergency(text: string): boolean {
+export function isEmergency(text: string): boolean {
   return EMERGENCY_PATTERNS.some((r) => r.test(text));
 }
+
+// Greeting / small-talk detection (runs before scope + retrieval).
+const GREETING_RE =
+  /^(hi+|hey+|hello+|yo|hola|howdy|greetings|good\s*(morning|afternoon|evening|night)|gm|ga|ge)([\s!.,?😊👋🙂🐾]*)$/i;
+const THANKS_RE = /^(thanks|thank\s*you|ty|thx|thankyou|cheers|much\s*appreciated|appreciate\s*it)([\s!.,?😊🙏🐾]*)$/i;
+const BYE_RE = /^(bye+|goodbye|good\s*night|see\s*you|see\s*ya|cya|later|talk\s*soon|take\s*care)([\s!.,?👋🐾]*)$/i;
+const HOWAREYOU_RE = /^(how\s*are\s*you|how'?s\s*it\s*going|what'?s\s*up|sup|how\s*are\s*things)([\s!.,?🙂🐾]*)$/i;
+
+type SmallTalk = "greeting" | "thanks" | "bye" | "howareyou" | null;
+
+export function detectSmallTalk(text: string): SmallTalk {
+  const t = text.trim();
+  if (!t || t.length > 60) return null;
+  if (GREETING_RE.test(t)) return "greeting";
+  if (THANKS_RE.test(t)) return "thanks";
+  if (BYE_RE.test(t)) return "bye";
+  if (HOWAREYOU_RE.test(t)) return "howareyou";
+  return null;
+}
+
+function smallTalkReply(kind: Exclude<SmallTalk, null>): string {
+  switch (kind) {
+    case "greeting":
+      return "Hello! 👋 I'm ZuZo AI, your smart pet care assistant. How can I help you care for your pet today?";
+    case "thanks":
+      return "You're very welcome! 🐾 If you have more questions about your pet's care, I'm right here.";
+    case "bye":
+      return "Goodbye! 👋 Give your pet a gentle pat from me. Come back any time you need pet-care guidance.";
+    case "howareyou":
+      return "I'm doing great, thank you! 🙂 Ready to help with your pet's health, nutrition, behavior, or daily care — what's on your mind?";
+  }
+}
+
 
 // Hybrid pet-domain classifier.
 // Signals are scored; strong out-of-domain hints subtract. Default is UNCERTAIN
@@ -153,7 +186,7 @@ const OUT_OF_DOMAIN_PATTERNS: RegExp[] = [
 
 type Scope = "IN_SCOPE" | "OUT_OF_SCOPE" | "UNCERTAIN";
 
-function classifyPetScope(text: string): Scope {
+export function classifyPetScope(text: string): Scope {
   const t = text.toLowerCase();
   let score = 0;
   let hits = 0;
@@ -312,6 +345,13 @@ export const Route = createFileRoute("/api/chat")({
             content: text,
           });
         };
+
+        // 2b. Small-talk short-circuit (before emergency, scope, embeddings, retrieval)
+        const smallTalk = detectSmallTalk(userQuestion);
+        if (smallTalk) {
+          console.log(`[rag] SmallTalk: ${smallTalk}`);
+          return staticStreamResponse(smallTalkReply(smallTalk), messages, persistAssistant);
+        }
 
         // 3. Emergency short-circuit (before scope + retrieval)
         if (isEmergency(userQuestion)) {
