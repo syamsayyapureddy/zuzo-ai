@@ -2,8 +2,14 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
-const EMBED_MODEL = "text-embedding-004";
-const EMBED_URL = `https://generativelanguage.googleapis.com/v1beta/models/${EMBED_MODEL}:embedContent`;
+const EMBED_DIMS = 768; // must match vector(768) column
+// Preferred embedding models, newest first. First one available on the key is used.
+const PREFERRED_EMBED_MODELS = [
+  "gemini-embedding-001",
+  "text-embedding-004",
+  "embedding-001",
+];
+const API_BASE = "https://generativelanguage.googleapis.com/v1beta";
 
 const CHUNK_SIZE = 2000; // ~500 tokens
 const CHUNK_OVERLAP = 200;
@@ -24,19 +30,69 @@ function chunkText(text: string): string[] {
   return chunks;
 }
 
-async function embed(text: string, apiKey: string): Promise<number[]> {
-  const res = await fetch(`${EMBED_URL}?key=${apiKey}`, {
+let cachedModel: string | null = null;
+
+async function resolveEmbedModel(apiKey: string): Promise<string> {
+  if (cachedModel) return cachedModel;
+  try {
+    const res = await fetch(`${API_BASE}/models?key=${apiKey}&pageSize=200`);
+    if (res.ok) {
+      const json = (await res.json()) as {
+        models?: { name?: string; supportedGenerationMethods?: string[] }[];
+      };
+      const embedders = (json.models ?? [])
+        .filter((m) => (m.supportedGenerationMethods ?? []).includes("embedContent"))
+        .map((m) => (m.name ?? "").replace(/^models\//, ""))
+        .filter(Boolean);
+      for (const pref of PREFERRED_EMBED_MODELS) {
+        if (embedders.includes(pref)) {
+          cachedModel = pref;
+          return pref;
+        }
+      }
+      // Fallback: first available embedder
+      if (embedders.length > 0) {
+        cachedModel = embedders[0];
+        return embedders[0];
+      }
+    } else {
+      console.error("[knowledge-base] ListModels failed", res.status, (await res.text()).slice(0, 200));
+    }
+  } catch (e) {
+    console.error("[knowledge-base] ListModels error", e instanceof Error ? e.message : e);
+  }
+  // Last-resort default
+  cachedModel = PREFERRED_EMBED_MODELS[0];
+  return cachedModel;
+}
+
+async function embed(text: string, apiKey: string, model: string): Promise<number[]> {
+  const url = `${API_BASE}/models/${model}:embedContent?key=${apiKey}`;
+  const body: Record<string, unknown> = {
+    content: { parts: [{ text }] },
+  };
+  // gemini-embedding-001 supports outputDimensionality to match our 768-dim column.
+  if (model.startsWith("gemini-embedding")) {
+    body.outputDimensionality = EMBED_DIMS;
+  }
+  const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ content: { parts: [{ text }] } }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Gemini embed ${res.status}: ${body.slice(0, 300)}`);
+    const errText = (await res.text()).slice(0, 500);
+    console.error(`[knowledge-base] embed ${res.status} model=${model}: ${errText}`);
+    throw new Error(`Gemini embed failed (${res.status}) using ${model}: ${errText}`);
   }
   const json = (await res.json()) as { embedding?: { values?: number[] } };
   const values = json.embedding?.values;
   if (!values || values.length === 0) throw new Error("Gemini returned empty embedding");
+  if (values.length !== EMBED_DIMS) {
+    throw new Error(
+      `Embedding dim mismatch: got ${values.length}, expected ${EMBED_DIMS} (model=${model})`,
+    );
+  }
   return values;
 }
 
