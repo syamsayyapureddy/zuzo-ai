@@ -60,6 +60,30 @@ function isEmergency(text: string): boolean {
   return EMERGENCY_PATTERNS.some((r) => r.test(text));
 }
 
+// Pet-care scope allowlist. If the question hits none of these, we treat it as out of scope.
+const PET_SCOPE_PATTERNS: RegExp[] = [
+  /\bpets?\b/i,
+  /\banimals?\b/i,
+  /\b(dog|puppy|puppies|canine)s?\b/i,
+  /\b(cat|kitten|feline)s?\b/i,
+  /\b(rabbit|bunny|bunnies|hamster|guinea pig|ferret|gerbil|rodent)s?\b/i,
+  /\b(bird|parrot|budgie|budgerigar|cockatiel|canary|finch|parakeet|macaw)s?\b/i,
+  /\b(goldfish|betta|aquarium)\b/i,
+  /\b(reptile|lizard|gecko|iguana|snake|turtle|tortoise)s?\b/i,
+  /\b(horse|pony|equine|foal|mare|stallion)s?\b/i,
+  /\b(vet|vets|veterinary|veterinarian)\b/i,
+  /\b(vaccin(?:e|es|ation|ations|ate|ated)|rabies|distemper|parvo|deworm(?:er|ing)?|fleas?|ticks?|heartworm|microchip)\b/i,
+  /\b(kibble|pet\s*food|pet\s*diet|puppy\s*food|kitten\s*food|raw\s*diet)\b/i,
+  /\b(groom(?:ing|ed|er|ers)?|shedding|coat|fur|paws?|claws?|whiskers?|muzzle|litter\s*box|leash|collar|harness|kennel|crate|hutch|aviary|terrarium|vivarium)\b/i,
+  /\b(neuter(?:ed|ing)?|spay(?:ed|ing)?|castrat(?:e|ed|ion)|whelping|breed(?:ing|s|er)?)\b/i,
+  /\b(barking|meow(?:ing)?|purr(?:ing)?|whining|growling|litter training|potty training|house training|crate training|obedience|clicker)\b/i,
+  /\b(zoonotic|parasites?|worms?|mites?|mange|ringworm|kennel cough|avian)\b/i,
+];
+
+function isInPetScope(text: string): boolean {
+  return PET_SCOPE_PATTERNS.some((r) => r.test(text));
+}
+
 // ---- Helpers --------------------------------------------------------------
 
 function extractUserText(msg: UIMessage | undefined): string {
