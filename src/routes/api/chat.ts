@@ -228,8 +228,9 @@ export const Route = createFileRoute("/api/chat")({
           });
         };
 
-        // 3. Emergency short-circuit (before retrieval)
+        // 3. Emergency short-circuit (before scope + retrieval)
         if (isEmergency(userQuestion)) {
+          console.log("[rag] RAG: Emergency detected");
           const emergencyText = [
             "⚠️ This sounds like a possible emergency.",
             "",
@@ -241,6 +242,26 @@ export const Route = createFileRoute("/api/chat")({
           ].join("\n");
           return staticStreamResponse(emergencyText, messages, persistAssistant);
         }
+
+        // 3b. Out-of-scope short-circuit (before embeddings / Gemini)
+        if (!isInPetScope(userQuestion)) {
+          console.log("[rag] RAG: Out-of-scope question");
+          return staticStreamResponse(OUT_OF_SCOPE_FALLBACK, messages, persistAssistant);
+        }
+
+        // 3c. Knowledge Base empty check (any ready doc for this user)
+        const { count: readyCount, error: readyErr } = await supabase
+          .from("knowledge_documents")
+          .select("id", { count: "exact", head: true })
+          .eq("processing_status", "ready");
+        if (readyErr) {
+          console.error("[rag] ready-doc count error", readyErr.message);
+        }
+        if (!readyErr && (readyCount ?? 0) === 0) {
+          console.log("[rag] RAG: Knowledge Base empty");
+          return staticStreamResponse(KB_EMPTY_FALLBACK, messages, persistAssistant);
+        }
+
 
         // 4-9. Embed + retrieve + filter + dedupe
         const embedding = await embedQuery(userQuestion, geminiKey);
