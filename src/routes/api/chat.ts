@@ -11,13 +11,16 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
 // ---- Config ---------------------------------------------------------------
-const GEMINI_MODEL = "gemini-2.5-flash";
+const CHAT_MODEL = "google/gemini-2.5-flash"; // via Lovable AI Gateway
 const EMBED_MODEL = "gemini-embedding-001"; // MUST match KB ingestion
 const EMBED_DIMS = 768;
 const MAX_CHUNKS = 5;
 const MIN_SIMILARITY = 0.55;
 const DEDUP_JACCARD = 0.85;
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
+const LOVABLE_AI_BASE = "https://ai.gateway.lovable.dev/v1";
+const GENERIC_ERROR_FALLBACK =
+  "Sorry, something went wrong while processing your request. Please try again.";
 
 const NO_KB_MATCH_FALLBACK =
   "I could not find enough information about this in the ZuZo AI Knowledge Base. Please consult a licensed veterinarian for personalised advice regarding your pet.";
@@ -383,12 +386,18 @@ export const Route = createFileRoute("/api/chat")({
         const titles = Array.from(new Set(chunks.map((c) => c.document_title)));
         const sourceLine = `\n\n— Answer based on ZuZo AI Knowledge Base (${chunks.length} source${chunks.length === 1 ? "" : "s"}: ${titles.join(", ")})`;
 
-        const gemini = createOpenAICompatible({
-          name: "google-gemini",
-          baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
-          apiKey: geminiKey,
+        const lovableKey = process.env.LOVABLE_API_KEY;
+        if (!lovableKey) {
+          console.error("[rag] LOVABLE_API_KEY missing");
+          return staticStreamResponse(GENERIC_ERROR_FALLBACK, messages, persistAssistant);
+        }
+
+        const gateway = createOpenAICompatible({
+          name: "lovable-ai",
+          baseURL: LOVABLE_AI_BASE,
+          headers: { "Lovable-API-Key": lovableKey },
         });
-        const model = gemini(GEMINI_MODEL);
+        const model = gateway(CHAT_MODEL);
 
         const augmentedSystem = `${SYSTEM_PROMPT}\n\nKNOWLEDGE BASE CONTEXT (use this to answer):\n\n${kbBlock}`;
 
@@ -398,7 +407,8 @@ export const Route = createFileRoute("/api/chat")({
             system: augmentedSystem,
             messages: convertToModelMessages(messages),
             onError: (err) => {
-              console.error("[gemini] stream error", err.error instanceof Error ? err.error.message : err.error);
+              const msg = err.error instanceof Error ? err.error.message : String(err.error);
+              console.error("[gemini] stream error", msg);
             },
           });
 
@@ -409,9 +419,9 @@ export const Route = createFileRoute("/api/chat")({
                 .map((p) => (p.type === "text" ? p.text : ""))
                 .join("")
                 .trim();
-              // Append source transparency footer if the model produced a grounded answer.
-              if (
-                text &&
+              if (!text) {
+                text = GENERIC_ERROR_FALLBACK;
+              } else if (
                 text !== NO_KB_MATCH_FALLBACK &&
                 text !== OUT_OF_SCOPE_FALLBACK &&
                 !text.includes("Answer based on ZuZo AI Knowledge Base")
@@ -423,7 +433,7 @@ export const Route = createFileRoute("/api/chat")({
           });
         } catch (err) {
           console.error("[gemini] request failed", err instanceof Error ? err.message : err);
-          return new Response("AI request failed", { status: 502 });
+          return staticStreamResponse(GENERIC_ERROR_FALLBACK, messages, persistAssistant);
         }
       },
     },
