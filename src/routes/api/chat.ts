@@ -386,12 +386,18 @@ export const Route = createFileRoute("/api/chat")({
         const titles = Array.from(new Set(chunks.map((c) => c.document_title)));
         const sourceLine = `\n\n— Answer based on ZuZo AI Knowledge Base (${chunks.length} source${chunks.length === 1 ? "" : "s"}: ${titles.join(", ")})`;
 
-        const gemini = createOpenAICompatible({
-          name: "google-gemini",
-          baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
-          apiKey: geminiKey,
+        const lovableKey = process.env.LOVABLE_API_KEY;
+        if (!lovableKey) {
+          console.error("[rag] LOVABLE_API_KEY missing");
+          return staticStreamResponse(GENERIC_ERROR_FALLBACK, messages, persistAssistant);
+        }
+
+        const gateway = createOpenAICompatible({
+          name: "lovable-ai",
+          baseURL: LOVABLE_AI_BASE,
+          headers: { "Lovable-API-Key": lovableKey },
         });
-        const model = gemini(GEMINI_MODEL);
+        const model = gateway(CHAT_MODEL);
 
         const augmentedSystem = `${SYSTEM_PROMPT}\n\nKNOWLEDGE BASE CONTEXT (use this to answer):\n\n${kbBlock}`;
 
@@ -401,7 +407,8 @@ export const Route = createFileRoute("/api/chat")({
             system: augmentedSystem,
             messages: convertToModelMessages(messages),
             onError: (err) => {
-              console.error("[gemini] stream error", err.error instanceof Error ? err.error.message : err.error);
+              const msg = err.error instanceof Error ? err.error.message : String(err.error);
+              console.error("[gemini] stream error", msg);
             },
           });
 
@@ -412,9 +419,9 @@ export const Route = createFileRoute("/api/chat")({
                 .map((p) => (p.type === "text" ? p.text : ""))
                 .join("")
                 .trim();
-              // Append source transparency footer if the model produced a grounded answer.
-              if (
-                text &&
+              if (!text) {
+                text = GENERIC_ERROR_FALLBACK;
+              } else if (
                 text !== NO_KB_MATCH_FALLBACK &&
                 text !== OUT_OF_SCOPE_FALLBACK &&
                 !text.includes("Answer based on ZuZo AI Knowledge Base")
@@ -426,7 +433,7 @@ export const Route = createFileRoute("/api/chat")({
           });
         } catch (err) {
           console.error("[gemini] request failed", err instanceof Error ? err.message : err);
-          return new Response("AI request failed", { status: 502 });
+          return staticStreamResponse(GENERIC_ERROR_FALLBACK, messages, persistAssistant);
         }
       },
     },
