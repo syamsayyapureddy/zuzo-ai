@@ -186,7 +186,7 @@ const OUT_OF_DOMAIN_PATTERNS: RegExp[] = [
 
 type Scope = "IN_SCOPE" | "OUT_OF_SCOPE" | "UNCERTAIN";
 
-function classifyPetScope(text: string): Scope {
+export function classifyPetScope(text: string): Scope {
   const t = text.toLowerCase();
   let score = 0;
   let hits = 0;
