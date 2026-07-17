@@ -62,29 +62,111 @@ function isEmergency(text: string): boolean {
   return EMERGENCY_PATTERNS.some((r) => r.test(text));
 }
 
-// Pet-care scope allowlist. If the question hits none of these, we treat it as out of scope.
-const PET_SCOPE_PATTERNS: RegExp[] = [
-  /\bpets?\b/i,
-  /\banimals?\b/i,
-  /\b(dog|puppy|puppies|canine)s?\b/i,
-  /\b(cat|kitten|feline)s?\b/i,
-  /\b(rabbit|bunny|bunnies|hamster|guinea pig|ferret|gerbil|rodent)s?\b/i,
-  /\b(bird|parrot|budgie|budgerigar|cockatiel|canary|finch|parakeet|macaw)s?\b/i,
-  /\b(goldfish|betta|aquarium)\b/i,
-  /\b(reptile|lizard|gecko|iguana|snake|turtle|tortoise)s?\b/i,
-  /\b(horse|pony|equine|foal|mare|stallion)s?\b/i,
-  /\b(vet|vets|veterinary|veterinarian)\b/i,
-  /\b(vaccin(?:e|es|ation|ations|ate|ated)|rabies|distemper|parvo|deworm(?:er|ing)?|fleas?|ticks?|heartworm|microchip)\b/i,
-  /\b(kibble|pet\s*food|pet\s*diet|puppy\s*food|kitten\s*food|raw\s*diet)\b/i,
-  /\b(groom(?:ing|ed|er|ers)?|shedding|coat|fur|paws?|claws?|whiskers?|muzzle|litter\s*box|leash|collar|harness|kennel|crate|hutch|aviary|terrarium|vivarium)\b/i,
-  /\b(neuter(?:ed|ing)?|spay(?:ed|ing)?|castrat(?:e|ed|ion)|whelping|breed(?:ing|s|er)?)\b/i,
-  /\b(barking|meow(?:ing)?|purr(?:ing)?|whining|growling|litter training|potty training|house training|crate training|obedience|clicker)\b/i,
-  /\b(zoonotic|parasites?|worms?|mites?|mange|ringworm|kennel cough|avian)\b/i,
+// Hybrid pet-domain classifier.
+// Signals are scored; strong out-of-domain hints subtract. Default is UNCERTAIN
+// so borderline questions still reach embedding + retrieval instead of being blocked.
+
+// --- Pet signal vocabulary ---
+const PET_SPECIES = [
+  "pet","pets","animal","animals",
+  "dog","dogs","puppy","puppies","canine","canines","doggy","doggo",
+  "cat","cats","kitten","kittens","feline","felines","kitty",
+  "rabbit","rabbits","bunny","bunnies",
+  "hamster","hamsters","guinea pig","guinea pigs","ferret","ferrets","gerbil","gerbils","chinchilla","hedgehog",
+  "bird","birds","parrot","parrots","budgie","budgerigar","cockatiel","canary","finch","parakeet","macaw","cockatoo","conure",
+  "fish","goldfish","betta","koi","cichlid","guppy","aquarium",
+  "reptile","reptiles","lizard","gecko","iguana","bearded dragon","snake","snakes","turtle","turtles","tortoise","tortoises",
+  "horse","horses","pony","ponies","equine","foal","mare","stallion","gelding",
+  "rat","mice","mouse","rodent","rodents",
 ];
 
-function isInPetScope(text: string): boolean {
-  return PET_SCOPE_PATTERNS.some((r) => r.test(text));
+const PET_BREEDS = [
+  // dogs
+  "labrador","lab","golden retriever","retriever","german shepherd","alsatian","beagle","bulldog","french bulldog","frenchie",
+  "pug","husky","siberian husky","poodle","dachshund","boxer","rottweiler","doberman","shih tzu","shih-tzu","maltese","yorkie","yorkshire terrier",
+  "chihuahua","corgi","pomeranian","border collie","collie","dalmatian","great dane","saint bernard","st bernard","bernese","akita","shiba","shiba inu",
+  "cocker spaniel","spaniel","mastiff","boxer","pit bull","pitbull","terrier","schnauzer","havanese","bichon","weimaraner","vizsla","malinois","samoyed",
+  // cats
+  "persian","siamese","maine coon","ragdoll","bengal","sphynx","british shorthair","american shorthair","russian blue","scottish fold","abyssinian","burmese","birman","norwegian forest",
+  // rabbits/others
+  "holland lop","netherland dwarf","flemish giant","angora","lionhead",
+];
+
+const PET_CARE_CONCEPTS = [
+  "vaccination","vaccinations","vaccine","vaccines","vaccinate","vaccinated","booster","rabies","distemper","parvo","parvovirus","fvrcp","bordetella","leptospirosis",
+  "grooming","groom","groomer","bathing","brushing","shedding","coat","fur","dander","mat","matting","nail trim","nail clip","claw trim",
+  "feeding","feed","nutrition","diet","kibble","raw diet","wet food","dry food","puppy food","kitten food","meal plan","treat","treats","chew","chews","supplement","supplements",
+  "symptom","symptoms","illness","illnesses","sick","disease","condition","infection","infections",
+  "parasite","parasites","flea","fleas","tick","ticks","mite","mites","worm","worms","tapeworm","roundworm","hookworm","heartworm","mange","ringworm","deworm","deworming","dewormer",
+  "behaviour","behavior","training","house training","potty training","crate training","clicker","obedience","socialization","socialisation","aggression","anxiety","separation anxiety",
+  "exercise","walks","walking","playtime","enrichment",
+  "adoption","adopt","rescue","shelter","foster",
+  "veterinary","veterinarian","vet","vets","clinic","animal hospital",
+  "medication","medicine","dose","dosage","antibiotic","antibiotics","painkiller","nsaid","steroid","dewormer",
+  "poisoning","toxic","toxicity","emergency","surgery","spay","spaying","neuter","neutering","castration","recovery","rehabilitation","physiotherapy",
+  "dental","dental care","teeth","gum","gums","tartar","plaque","bad breath","halitosis",
+  "skin","ear","ears","eye","eyes","paw","paws","claw","claws","whisker","whiskers","tail","nose","snout","muzzle",
+  "litter","litter box","litter tray","leash","collar","harness","kennel","crate","cage","hutch","aviary","terrarium","vivarium","tank","microchip","microchipping","id tag",
+  "pregnancy","pregnant","gestation","whelping","queening","newborn puppy","newborn puppies","newborn kitten","newborn kittens","weaning","litter of","breed","breeding","breeder",
+  "senior pet","senior dog","senior cat","geriatric","arthritis","hip dysplasia",
+  "zoonotic","avian","canine","feline","equine",
+];
+
+const PET_SYMPTOMS = [
+  "vomiting","vomit","throwing up","diarrhoea","diarrhea","loose stool","coughing","cough","sneezing","sneeze","runny nose",
+  "limping","lameness","itching","itchy","scratching","scratches","hair loss","bald patch","rash","hot spot",
+  "fever","lethargy","weakness","weak","tired","lethargic","seizure","seizures","tremor","tremors","shaking",
+  "breathing problem","breathing problems","laboured breathing","labored breathing","panting","wheezing","gagging",
+  "appetite loss","loss of appetite","not eating","won't eat","dehydration","dehydrated","excessive thirst","excessive drinking","excessive urination",
+  "bleeding","wound","wounds","cut","laceration","swelling","swollen","bruise","abscess","lump","bump","tumor","tumour","cyst",
+  "constipation","bloating","bloat","gas","drooling","salivating","bad breath","itchy ears","ear infection","eye discharge","red eyes","cloudy eyes",
+];
+
+const PET_VOCAB: Array<{ term: string; weight: number }> = [
+  ...PET_SPECIES.map((t) => ({ term: t, weight: 2 })),
+  ...PET_BREEDS.map((t) => ({ term: t, weight: 3 })),   // breed name alone is strong
+  ...PET_CARE_CONCEPTS.map((t) => ({ term: t, weight: 1 })),
+  ...PET_SYMPTOMS.map((t) => ({ term: t, weight: 1 })),
+];
+
+// Compile once (word-boundary, case-insensitive). Escape regex metacharacters.
+function escRe(s: string) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+const PET_VOCAB_RE: Array<{ re: RegExp; weight: number }> = PET_VOCAB.map(
+  ({ term, weight }) => ({ re: new RegExp(`\\b${escRe(term)}s?\\b`, "i"), weight }),
+);
+
+// Strong out-of-domain hints (only used to override when NO pet signal is present).
+const OUT_OF_DOMAIN_PATTERNS: RegExp[] = [
+  /\b(movie|film|cinema|netflix|actor|actress|box office|ticket price)s?\b/i,
+  /\b(weather|forecast|temperature today|rain today|snow today)\b/i,
+  /\b(politic|election|president|prime minister|parliament|senator|congress)s?\b/i,
+  /\b(stock|stocks|nasdaq|s&p|crypto|bitcoin|ethereum|forex|mortgage|interest rate)s?\b/i,
+  /\b(recipe|recipes|cook|cooking|bake|baking|cuisine|dish|dessert)\b/i,
+  /\b(flight|flights|airline|hotel booking|visa application|passport|tourism)\b/i,
+  /\b(javascript|typescript|python|java|c\+\+|react|angular|kubernetes|docker|sql query|regex)\b/i,
+  /\b(football|soccer|basketball|nba|nfl|cricket|tennis|olympics|world cup)\b/i,
+  /\b(capital of|population of|distance from|history of (?!pet|dog|cat))\b/i,
+];
+
+type Scope = "IN_SCOPE" | "OUT_OF_SCOPE" | "UNCERTAIN";
+
+function classifyPetScope(text: string): Scope {
+  const t = text.toLowerCase();
+  let score = 0;
+  let hits = 0;
+  for (const { re, weight } of PET_VOCAB_RE) {
+    if (re.test(t)) { score += weight; hits += 1; }
+  }
+  // Two independent signals OR one strong signal (species+concept or breed) → in scope.
+  if (hits >= 2 || score >= 3) return "IN_SCOPE";
+  if (hits >= 1) return "UNCERTAIN"; // single weak hit — let retrieval decide
+
+  // No pet hits at all: only reject when we see a strong non-pet cue.
+  if (OUT_OF_DOMAIN_PATTERNS.some((r) => r.test(text))) return "OUT_OF_SCOPE";
+
+  return "UNCERTAIN";
 }
+
 
 // ---- Helpers --------------------------------------------------------------
 
