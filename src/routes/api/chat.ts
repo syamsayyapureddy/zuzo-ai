@@ -22,7 +22,9 @@ const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
 const NO_KB_MATCH_FALLBACK =
   "I could not find enough information about this in the ZuZo AI Knowledge Base. Please consult a licensed veterinarian for personalised advice regarding your pet.";
 const OUT_OF_SCOPE_FALLBACK =
-  "This question is outside the ZuZo AI Knowledge Base. ZuZo AI provides educational guidance about pet health, nutrition, grooming, vaccinations, behaviour, preventive care and general pet wellness.";
+  "This question is outside the ZuZo AI Knowledge Base. ZuZo AI provides educational guidance about pet health, nutrition, grooming, vaccinations, behavior, preventive care and general pet wellness.";
+const KB_EMPTY_FALLBACK =
+  "The ZuZo AI Knowledge Base does not currently contain any processed documents. Please upload and process pet-care knowledge before asking questions.";
 const EDU_DISCLAIMER =
   "This information is for educational purposes only and does not replace professional veterinary care.";
 
@@ -58,6 +60,30 @@ const EMERGENCY_PATTERNS: RegExp[] = [
 
 function isEmergency(text: string): boolean {
   return EMERGENCY_PATTERNS.some((r) => r.test(text));
+}
+
+// Pet-care scope allowlist. If the question hits none of these, we treat it as out of scope.
+const PET_SCOPE_PATTERNS: RegExp[] = [
+  /\bpets?\b/i,
+  /\banimals?\b/i,
+  /\b(dog|puppy|puppies|canine)s?\b/i,
+  /\b(cat|kitten|feline)s?\b/i,
+  /\b(rabbit|bunny|bunnies|hamster|guinea pig|ferret|gerbil|rodent)s?\b/i,
+  /\b(bird|parrot|budgie|budgerigar|cockatiel|canary|finch|parakeet|macaw)s?\b/i,
+  /\b(goldfish|betta|aquarium)\b/i,
+  /\b(reptile|lizard|gecko|iguana|snake|turtle|tortoise)s?\b/i,
+  /\b(horse|pony|equine|foal|mare|stallion)s?\b/i,
+  /\b(vet|vets|veterinary|veterinarian)\b/i,
+  /\b(vaccin(?:e|es|ation|ations|ate|ated)|rabies|distemper|parvo|deworm(?:er|ing)?|fleas?|ticks?|heartworm|microchip)\b/i,
+  /\b(kibble|pet\s*food|pet\s*diet|puppy\s*food|kitten\s*food|raw\s*diet)\b/i,
+  /\b(groom(?:ing|ed|er|ers)?|shedding|coat|fur|paws?|claws?|whiskers?|muzzle|litter\s*box|leash|collar|harness|kennel|crate|hutch|aviary|terrarium|vivarium)\b/i,
+  /\b(neuter(?:ed|ing)?|spay(?:ed|ing)?|castrat(?:e|ed|ion)|whelping|breed(?:ing|s|er)?)\b/i,
+  /\b(barking|meow(?:ing)?|purr(?:ing)?|whining|growling|litter training|potty training|house training|crate training|obedience|clicker)\b/i,
+  /\b(zoonotic|parasites?|worms?|mites?|mange|ringworm|kennel cough|avian)\b/i,
+];
+
+function isInPetScope(text: string): boolean {
+  return PET_SCOPE_PATTERNS.some((r) => r.test(text));
 }
 
 // ---- Helpers --------------------------------------------------------------
@@ -202,8 +228,9 @@ export const Route = createFileRoute("/api/chat")({
           });
         };
 
-        // 3. Emergency short-circuit (before retrieval)
+        // 3. Emergency short-circuit (before scope + retrieval)
         if (isEmergency(userQuestion)) {
+          console.log("[rag] RAG: Emergency detected");
           const emergencyText = [
             "⚠️ This sounds like a possible emergency.",
             "",
@@ -215,6 +242,26 @@ export const Route = createFileRoute("/api/chat")({
           ].join("\n");
           return staticStreamResponse(emergencyText, messages, persistAssistant);
         }
+
+        // 3b. Out-of-scope short-circuit (before embeddings / Gemini)
+        if (!isInPetScope(userQuestion)) {
+          console.log("[rag] RAG: Out-of-scope question");
+          return staticStreamResponse(OUT_OF_SCOPE_FALLBACK, messages, persistAssistant);
+        }
+
+        // 3c. Knowledge Base empty check (any ready doc for this user)
+        const { count: readyCount, error: readyErr } = await supabase
+          .from("knowledge_documents")
+          .select("id", { count: "exact", head: true })
+          .eq("processing_status", "ready");
+        if (readyErr) {
+          console.error("[rag] ready-doc count error", readyErr.message);
+        }
+        if (!readyErr && (readyCount ?? 0) === 0) {
+          console.log("[rag] RAG: Knowledge Base empty");
+          return staticStreamResponse(KB_EMPTY_FALLBACK, messages, persistAssistant);
+        }
+
 
         // 4-9. Embed + retrieve + filter + dedupe
         const embedding = await embedQuery(userQuestion, geminiKey);
@@ -237,8 +284,11 @@ export const Route = createFileRoute("/api/chat")({
 
         // No relevant KB context → fixed fallback (no Gemini call)
         if (chunks.length === 0) {
+          console.log("[rag] RAG: No relevant chunks");
           return staticStreamResponse(NO_KB_MATCH_FALLBACK, messages, persistAssistant);
         }
+        console.log(`[rag] RAG: Retrieved ${chunks.length} chunks`);
+        console.log("[rag] RAG: Calling Gemini");
 
         // 10-12. Build context, call Gemini
         const kbBlock = buildContextBlock(chunks);
