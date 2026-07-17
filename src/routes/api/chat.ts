@@ -284,8 +284,11 @@ export const Route = createFileRoute("/api/chat")({
 
         // No relevant KB context → fixed fallback (no Gemini call)
         if (chunks.length === 0) {
+          console.log("[rag] RAG: No relevant chunks");
           return staticStreamResponse(NO_KB_MATCH_FALLBACK, messages, persistAssistant);
         }
+        console.log(`[rag] RAG: Retrieved ${chunks.length} chunks`);
+        console.log("[rag] RAG: Calling Gemini");
 
         // 10-12. Build context, call Gemini
         const kbBlock = buildContextBlock(chunks);
