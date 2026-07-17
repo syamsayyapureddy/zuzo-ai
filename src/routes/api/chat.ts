@@ -325,10 +325,16 @@ export const Route = createFileRoute("/api/chat")({
           return staticStreamResponse(emergencyText, messages, persistAssistant);
         }
 
-        // 3b. Out-of-scope short-circuit (before embeddings / Gemini)
-        if (!isInPetScope(userQuestion)) {
-          console.log("[rag] RAG: Out-of-scope question");
+        // 3b. Hybrid pet-scope classifier (before embeddings / Gemini)
+        const scope = classifyPetScope(userQuestion);
+        if (scope === "OUT_OF_SCOPE") {
+          console.log("[rag] Scope: OUT_OF_SCOPE");
           return staticStreamResponse(OUT_OF_SCOPE_FALLBACK, messages, persistAssistant);
+        }
+        if (scope === "IN_SCOPE") {
+          console.log("[rag] Scope: IN_SCOPE");
+        } else {
+          console.log("[rag] Scope: UNCERTAIN -> Continue Retrieval");
         }
 
         // 3c. Knowledge Base empty check (any ready doc for this user)
