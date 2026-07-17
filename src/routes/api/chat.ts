@@ -346,6 +346,13 @@ export const Route = createFileRoute("/api/chat")({
           });
         };
 
+        // 2b. Small-talk short-circuit (before emergency, scope, embeddings, retrieval)
+        const smallTalk = detectSmallTalk(userQuestion);
+        if (smallTalk) {
+          console.log(`[rag] SmallTalk: ${smallTalk}`);
+          return staticStreamResponse(smallTalkReply(smallTalk), messages, persistAssistant);
+        }
+
         // 3. Emergency short-circuit (before scope + retrieval)
         if (isEmergency(userQuestion)) {
           console.log("[rag] RAG: Emergency detected");
