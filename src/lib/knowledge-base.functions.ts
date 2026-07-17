@@ -168,6 +168,8 @@ export const processKnowledgeDocument = createServerFn({ method: "POST" })
       const chunks = chunkText(text);
       if (chunks.length === 0) throw new Error("No chunks produced");
 
+      const model = await resolveEmbedModel(apiKey);
+
       // Embed sequentially to respect rate limits
       const rows: {
         document_id: string;
@@ -176,7 +178,7 @@ export const processKnowledgeDocument = createServerFn({ method: "POST" })
         embedding: string;
       }[] = [];
       for (let i = 0; i < chunks.length; i++) {
-        const values = await embed(chunks[i], apiKey);
+        const values = await embed(chunks[i], apiKey, model);
         rows.push({
           document_id: doc.id,
           chunk_text: chunks[i],
