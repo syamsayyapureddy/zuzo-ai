@@ -111,6 +111,83 @@ function smallTalkReply(kind: Exclude<SmallTalk, null>): string {
   }
 }
 
+// ---- Pet ownership acknowledgment ----------------------------------------
+// Detects short "I have a <pet>" style statements and responds conversationally
+// without triggering retrieval.
+const SPECIES_ACK: Record<string, string> = {
+  dog: "Dogs are loyal, loving companions",
+  puppy: "Puppies are full of energy and curiosity",
+  cat: "Cats are curious and independent companions",
+  kitten: "Kittens are playful little bundles of joy",
+  rabbit: "Rabbits are gentle and social little companions",
+  bunny: "Bunnies are gentle and social little companions",
+  ferret: "Ferrets are playful and curious pets",
+  hamster: "Hamsters are adorable little pocket pets",
+  "guinea pig": "Guinea pigs are sweet, social little companions",
+  gerbil: "Gerbils are lively and fun to watch",
+  chinchilla: "Chinchillas are soft, curious little companions",
+  hedgehog: "Hedgehogs are unique and charming pets",
+  bird: "Birds are bright, intelligent companions",
+  parrot: "Parrots are highly intelligent and social birds",
+  budgie: "Budgies are cheerful and chatty little birds",
+  budgerigar: "Budgerigars are cheerful and chatty little birds",
+  cockatiel: "Cockatiels are affectionate and musical birds",
+  canary: "Canaries are lovely singers",
+  finch: "Finches are delightful, active little birds",
+  parakeet: "Parakeets are friendly and playful birds",
+  macaw: "Macaws are magnificent, intelligent birds",
+  cockatoo: "Cockatoos are affectionate and highly social birds",
+  fish: "Fish make wonderfully calming companions",
+  goldfish: "Goldfish are classic, beautiful aquatic pets",
+  betta: "Betta fish are striking and full of personality",
+  turtle: "Turtles are calm, long-lived companions",
+  tortoise: "Tortoises are gentle, long-lived companions",
+  gecko: "Geckos are fascinating little reptiles",
+  lizard: "Lizards are fascinating reptile companions",
+  "bearded dragon": "Bearded dragons are friendly and interactive reptiles",
+  iguana: "Iguanas are impressive reptile companions",
+  snake: "Snakes are quiet, fascinating pets",
+  mouse: "Mice are curious and quick little pets",
+  rat: "Rats are surprisingly affectionate and intelligent pets",
+  horse: "Horses are magnificent, gentle companions",
+  pony: "Ponies are charming and spirited companions",
+};
+
+const OWNERSHIP_RE =
+  /^\s*(?:i\s+(?:have|own|got|just\s+got|recently\s+got|adopted|just\s+adopted|recently\s+adopted|rescued|brought\s+home)|my\s+pet\s+is|this\s+is\s+my|meet\s+my)\s+(?:an?\s+|my\s+|new\s+|a\s+new\s+)?([a-zA-Z][a-zA-Z\s-]{1,30}?)\s*[.!]?\s*$/i;
+
+export function detectOwnership(text: string): string | null {
+  const t = text.trim();
+  if (!t || t.length > 80) return null;
+  const m = t.match(OWNERSHIP_RE);
+  if (!m) return null;
+  const raw = m[1].toLowerCase().replace(/\s+/g, " ").trim();
+  // Try multi-word first, then last word, then first word.
+  if (SPECIES_ACK[raw]) return raw;
+  const words = raw.split(" ");
+  const last = words[words.length - 1].replace(/s$/, "");
+  if (SPECIES_ACK[last]) return last;
+  const first = words[0].replace(/s$/, "");
+  if (SPECIES_ACK[first]) return first;
+  return null;
+}
+
+function ownershipReply(species: string): string {
+  const descriptor = SPECIES_ACK[species] ?? "What a lovely pet";
+  const article = /^[aeiou]/i.test(species) ? "an" : "a";
+  const nice = species.charAt(0).toUpperCase() + species.slice(1);
+  return `That's wonderful! 🐾 ${descriptor}. How can I help you with your ${nice.toLowerCase()} today? I can share guidance on nutrition, grooming, behavior, health, vaccinations, and daily care — just let me know what you'd like to know about your ${article} ${species}.`;
+}
+
+// Detect which known species (if any) appears in the text — for logging.
+function detectSpecies(text: string): string | null {
+  const t = text.toLowerCase();
+  for (const key of Object.keys(SPECIES_ACK)) {
+    if (new RegExp(`\\b${escRe(key)}s?\\b`, "i").test(t)) return key;
+  }
+  return null;
+}
+
 
 // Hybrid pet-domain classifier.
 // Signals are scored; strong out-of-domain hints subtract. Default is UNCERTAIN
