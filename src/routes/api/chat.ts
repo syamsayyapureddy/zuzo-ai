@@ -40,8 +40,6 @@ const NO_KB_MATCH_FALLBACK =
   "I could not find enough information about this in the ZuZo AI Knowledge Base. Please consult a licensed veterinarian for personalised advice regarding your pet.";
 const OUT_OF_SCOPE_FALLBACK =
   "This question is outside the ZuZo AI Knowledge Base. ZuZo AI provides educational guidance about pet health, nutrition, grooming, vaccinations, behavior, preventive care and general pet wellness.";
-const KB_EMPTY_FALLBACK =
-  "The ZuZo AI Knowledge Base does not currently contain any processed documents. Please upload and process pet-care knowledge before asking questions.";
 const EDU_DISCLAIMER =
   "This information is for educational purposes only and does not replace professional veterinary care.";
 
@@ -109,6 +107,83 @@ function smallTalkReply(kind: Exclude<SmallTalk, null>): string {
     case "howareyou":
       return "I'm doing great, thank you! 🙂 Ready to help with your pet's health, nutrition, behavior, or daily care — what's on your mind?";
   }
+}
+
+// ---- Pet ownership acknowledgment ----------------------------------------
+// Detects short "I have a <pet>" style statements and responds conversationally
+// without triggering retrieval.
+const SPECIES_ACK: Record<string, string> = {
+  dog: "Dogs are loyal, loving companions",
+  puppy: "Puppies are full of energy and curiosity",
+  cat: "Cats are curious and independent companions",
+  kitten: "Kittens are playful little bundles of joy",
+  rabbit: "Rabbits are gentle and social little companions",
+  bunny: "Bunnies are gentle and social little companions",
+  ferret: "Ferrets are playful and curious pets",
+  hamster: "Hamsters are adorable little pocket pets",
+  "guinea pig": "Guinea pigs are sweet, social little companions",
+  gerbil: "Gerbils are lively and fun to watch",
+  chinchilla: "Chinchillas are soft, curious little companions",
+  hedgehog: "Hedgehogs are unique and charming pets",
+  bird: "Birds are bright, intelligent companions",
+  parrot: "Parrots are highly intelligent and social birds",
+  budgie: "Budgies are cheerful and chatty little birds",
+  budgerigar: "Budgerigars are cheerful and chatty little birds",
+  cockatiel: "Cockatiels are affectionate and musical birds",
+  canary: "Canaries are lovely singers",
+  finch: "Finches are delightful, active little birds",
+  parakeet: "Parakeets are friendly and playful birds",
+  macaw: "Macaws are magnificent, intelligent birds",
+  cockatoo: "Cockatoos are affectionate and highly social birds",
+  fish: "Fish make wonderfully calming companions",
+  goldfish: "Goldfish are classic, beautiful aquatic pets",
+  betta: "Betta fish are striking and full of personality",
+  turtle: "Turtles are calm, long-lived companions",
+  tortoise: "Tortoises are gentle, long-lived companions",
+  gecko: "Geckos are fascinating little reptiles",
+  lizard: "Lizards are fascinating reptile companions",
+  "bearded dragon": "Bearded dragons are friendly and interactive reptiles",
+  iguana: "Iguanas are impressive reptile companions",
+  snake: "Snakes are quiet, fascinating pets",
+  mouse: "Mice are curious and quick little pets",
+  rat: "Rats are surprisingly affectionate and intelligent pets",
+  horse: "Horses are magnificent, gentle companions",
+  pony: "Ponies are charming and spirited companions",
+};
+
+const OWNERSHIP_RE =
+  /^\s*(?:i\s+(?:have|own|got|just\s+got|recently\s+got|adopted|just\s+adopted|recently\s+adopted|rescued|brought\s+home)|my\s+pet\s+is|this\s+is\s+my|meet\s+my)\s+(?:an?\s+|my\s+|new\s+|a\s+new\s+)?([a-zA-Z][a-zA-Z\s-]{1,30}?)\s*[.!]?\s*$/i;
+
+export function detectOwnership(text: string): string | null {
+  const t = text.trim();
+  if (!t || t.length > 80) return null;
+  const m = t.match(OWNERSHIP_RE);
+  if (!m) return null;
+  const raw = m[1].toLowerCase().replace(/\s+/g, " ").trim();
+  // Try multi-word first, then last word, then first word.
+  if (SPECIES_ACK[raw]) return raw;
+  const words = raw.split(" ");
+  const last = words[words.length - 1].replace(/s$/, "");
+  if (SPECIES_ACK[last]) return last;
+  const first = words[0].replace(/s$/, "");
+  if (SPECIES_ACK[first]) return first;
+  return null;
+}
+
+function ownershipReply(species: string): string {
+  const descriptor = SPECIES_ACK[species] ?? "What a lovely pet";
+  const article = /^[aeiou]/i.test(species) ? "an" : "a";
+  const nice = species.charAt(0).toUpperCase() + species.slice(1);
+  return `That's wonderful! 🐾 ${descriptor}. How can I help you with your ${nice.toLowerCase()} today? I can share guidance on nutrition, grooming, behavior, health, vaccinations, and daily care — just let me know what you'd like to know about your ${article} ${species}.`;
+}
+
+// Detect which known species (if any) appears in the text — for logging.
+function detectSpecies(text: string): string | null {
+  const t = text.toLowerCase();
+  for (const key of Object.keys(SPECIES_ACK)) {
+    if (new RegExp(`\\b${escRe(key)}s?\\b`, "i").test(t)) return key;
+  }
+  return null;
 }
 
 
@@ -367,6 +442,13 @@ export const Route = createFileRoute("/api/chat")({
           return staticStreamResponse(smallTalkReply(smallTalk), messages, persistAssistant);
         }
 
+        // 2c. Ownership statement short-circuit ("I have a ferret", "I own a rabbit", …)
+        const ownedSpecies = detectOwnership(userQuestion);
+        if (ownedSpecies) {
+          console.log(`[rag] Ownership acknowledged: ${ownedSpecies}`);
+          return staticStreamResponse(ownershipReply(ownedSpecies), messages, persistAssistant);
+        }
+
         // 3. Emergency short-circuit (before scope + retrieval)
         if (isEmergency(userQuestion)) {
           console.log("[rag] RAG: Emergency detected");
@@ -383,29 +465,26 @@ export const Route = createFileRoute("/api/chat")({
         }
 
         // 3b. Hybrid pet-scope classifier (before embeddings / Gemini)
+        const detectedSpecies = detectSpecies(userQuestion);
+        console.log(`[rag] Species detected: ${detectedSpecies ?? "none"}`);
         const scope = classifyPetScope(userQuestion);
+        console.log(`[rag] Scope: ${scope}`);
         if (scope === "OUT_OF_SCOPE") {
-          console.log("[rag] Scope: OUT_OF_SCOPE");
           return staticStreamResponse(OUT_OF_SCOPE_FALLBACK, messages, persistAssistant);
         }
-        if (scope === "IN_SCOPE") {
-          console.log("[rag] Scope: IN_SCOPE");
-        } else {
-          console.log("[rag] Scope: UNCERTAIN -> Continue Retrieval");
-        }
 
-        // 3c. Knowledge Base empty check (any ready doc for this user)
+        // 3c. Knowledge Base readiness (informational only — no hard refusal).
+        // If KB is empty we still fall through to the Gemini general-knowledge fallback.
         const { count: readyCount, error: readyErr } = await supabase
           .from("knowledge_documents")
           .select("id", { count: "exact", head: true })
           .eq("processing_status", "ready");
         if (readyErr) {
           console.error("[rag] ready-doc count error", readyErr.message);
+        } else {
+          console.log(`[rag] KB ready documents: ${readyCount ?? 0}`);
         }
-        if (!readyErr && (readyCount ?? 0) === 0) {
-          console.log("[rag] RAG: Knowledge Base empty");
-          return staticStreamResponse(KB_EMPTY_FALLBACK, messages, persistAssistant);
-        }
+        const kbEmpty = !readyErr && (readyCount ?? 0) === 0;
 
 
         // 4-9. Embed + retrieve + filter + dedupe (with lowered-threshold retry)
@@ -429,7 +508,9 @@ export const Route = createFileRoute("/api/chat")({
             : [];
         };
 
-        if (embedding && embedding.length === EMBED_DIMS) {
+        if (kbEmpty) {
+          console.log("[rag] Skipping retrieval — KB empty");
+        } else if (embedding && embedding.length === EMBED_DIMS) {
           chunks = await runMatch(MIN_SIMILARITY);
           console.log(`[rag] Retrieved ${chunks.length} chunks @ threshold ${MIN_SIMILARITY}`);
           if (chunks.length === 0) {
@@ -462,7 +543,7 @@ export const Route = createFileRoute("/api/chat")({
           ? `${SYSTEM_PROMPT}\n\nKNOWLEDGE BASE CONTEXT (use this to answer):\n\n${buildContextBlock(chunks)}`
           : GENERAL_SYSTEM_PROMPT;
 
-        console.log(hasKB ? "[rag] Calling Gemini (KB-grounded)" : "[rag] Calling Gemini (general knowledge fallback)");
+        console.log(`[rag] Response source: ${hasKB ? "KNOWLEDGE_BASE" : "GEMINI_GENERAL_FALLBACK"}`);
 
         try {
           const result = streamText({
