@@ -40,8 +40,6 @@ const NO_KB_MATCH_FALLBACK =
   "I could not find enough information about this in the ZuZo AI Knowledge Base. Please consult a licensed veterinarian for personalised advice regarding your pet.";
 const OUT_OF_SCOPE_FALLBACK =
   "This question is outside the ZuZo AI Knowledge Base. ZuZo AI provides educational guidance about pet health, nutrition, grooming, vaccinations, behavior, preventive care and general pet wellness.";
-const KB_EMPTY_FALLBACK =
-  "The ZuZo AI Knowledge Base does not currently contain any processed documents. Please upload and process pet-care knowledge before asking questions.";
 const EDU_DISCLAIMER =
   "This information is for educational purposes only and does not replace professional veterinary care.";
 
