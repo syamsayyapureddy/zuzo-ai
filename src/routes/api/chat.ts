@@ -15,7 +15,21 @@ const CHAT_MODEL = "google/gemini-2.5-flash"; // via Lovable AI Gateway
 const EMBED_MODEL = "gemini-embedding-001"; // MUST match KB ingestion
 const EMBED_DIMS = 768;
 const MAX_CHUNKS = 5;
-const MIN_SIMILARITY = 0.55;
+const MIN_SIMILARITY = 0.35;
+const FALLBACK_MIN_SIMILARITY = 0.15;
+const GENERAL_KNOWLEDGE_NOTE =
+  "This answer is based on general pet-care knowledge, not the ZuZo Knowledge Base.";
+const GENERAL_SYSTEM_PROMPT = `You are ZuZo AI 🐾, an AI-powered Pet Care Assistant.
+
+The ZuZo Knowledge Base has no relevant information for this question, so answer from your own general pet-care knowledge.
+
+RULES:
+- Be helpful, calm, and supportive; use simple language for pet owners.
+- Never diagnose diseases with certainty. Never prescribe medicines or dosages.
+- Always recommend consulting a licensed veterinarian for serious/urgent issues.
+- Only answer questions related to pet care (health, nutrition, grooming, behavior, training, vaccinations, wellness).
+- Start your reply with EXACTLY this line, then a blank line: "${GENERAL_KNOWLEDGE_NOTE}"
+- End your reply with a blank line then: "This information is for educational purposes only and does not replace professional veterinary care."`;
 const DEDUP_JACCARD = 0.85;
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
 const LOVABLE_AI_BASE = "https://ai.gateway.lovable.dev/v1";
