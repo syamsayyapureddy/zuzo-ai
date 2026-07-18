@@ -444,6 +444,13 @@ export const Route = createFileRoute("/api/chat")({
           return staticStreamResponse(smallTalkReply(smallTalk), messages, persistAssistant);
         }
 
+        // 2c. Ownership statement short-circuit ("I have a ferret", "I own a rabbit", …)
+        const ownedSpecies = detectOwnership(userQuestion);
+        if (ownedSpecies) {
+          console.log(`[rag] Ownership acknowledged: ${ownedSpecies}`);
+          return staticStreamResponse(ownershipReply(ownedSpecies), messages, persistAssistant);
+        }
+
         // 3. Emergency short-circuit (before scope + retrieval)
         if (isEmergency(userQuestion)) {
           console.log("[rag] RAG: Emergency detected");
@@ -460,29 +467,26 @@ export const Route = createFileRoute("/api/chat")({
         }
 
         // 3b. Hybrid pet-scope classifier (before embeddings / Gemini)
+        const detectedSpecies = detectSpecies(userQuestion);
+        console.log(`[rag] Species detected: ${detectedSpecies ?? "none"}`);
         const scope = classifyPetScope(userQuestion);
+        console.log(`[rag] Scope: ${scope}`);
         if (scope === "OUT_OF_SCOPE") {
-          console.log("[rag] Scope: OUT_OF_SCOPE");
           return staticStreamResponse(OUT_OF_SCOPE_FALLBACK, messages, persistAssistant);
         }
-        if (scope === "IN_SCOPE") {
-          console.log("[rag] Scope: IN_SCOPE");
-        } else {
-          console.log("[rag] Scope: UNCERTAIN -> Continue Retrieval");
-        }
 
-        // 3c. Knowledge Base empty check (any ready doc for this user)
+        // 3c. Knowledge Base readiness (informational only — no hard refusal).
+        // If KB is empty we still fall through to the Gemini general-knowledge fallback.
         const { count: readyCount, error: readyErr } = await supabase
           .from("knowledge_documents")
           .select("id", { count: "exact", head: true })
           .eq("processing_status", "ready");
         if (readyErr) {
           console.error("[rag] ready-doc count error", readyErr.message);
+        } else {
+          console.log(`[rag] KB ready documents: ${readyCount ?? 0}`);
         }
-        if (!readyErr && (readyCount ?? 0) === 0) {
-          console.log("[rag] RAG: Knowledge Base empty");
-          return staticStreamResponse(KB_EMPTY_FALLBACK, messages, persistAssistant);
-        }
+        const kbEmpty = !readyErr && (readyCount ?? 0) === 0;
 
 
         // 4-9. Embed + retrieve + filter + dedupe (with lowered-threshold retry)
