@@ -510,7 +510,9 @@ export const Route = createFileRoute("/api/chat")({
             : [];
         };
 
-        if (embedding && embedding.length === EMBED_DIMS) {
+        if (kbEmpty) {
+          console.log("[rag] Skipping retrieval — KB empty");
+        } else if (embedding && embedding.length === EMBED_DIMS) {
           chunks = await runMatch(MIN_SIMILARITY);
           console.log(`[rag] Retrieved ${chunks.length} chunks @ threshold ${MIN_SIMILARITY}`);
           if (chunks.length === 0) {
@@ -543,7 +545,7 @@ export const Route = createFileRoute("/api/chat")({
           ? `${SYSTEM_PROMPT}\n\nKNOWLEDGE BASE CONTEXT (use this to answer):\n\n${buildContextBlock(chunks)}`
           : GENERAL_SYSTEM_PROMPT;
 
-        console.log(hasKB ? "[rag] Calling Gemini (KB-grounded)" : "[rag] Calling Gemini (general knowledge fallback)");
+        console.log(`[rag] Response source: ${hasKB ? "KNOWLEDGE_BASE" : "GEMINI_GENERAL_FALLBACK"}`);
 
         try {
           const result = streamText({
