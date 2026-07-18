@@ -15,7 +15,21 @@ const CHAT_MODEL = "google/gemini-2.5-flash"; // via Lovable AI Gateway
 const EMBED_MODEL = "gemini-embedding-001"; // MUST match KB ingestion
 const EMBED_DIMS = 768;
 const MAX_CHUNKS = 5;
-const MIN_SIMILARITY = 0.55;
+const MIN_SIMILARITY = 0.35;
+const FALLBACK_MIN_SIMILARITY = 0.15;
+const GENERAL_KNOWLEDGE_NOTE =
+  "This answer is based on general pet-care knowledge, not the ZuZo Knowledge Base.";
+const GENERAL_SYSTEM_PROMPT = `You are ZuZo AI 🐾, an AI-powered Pet Care Assistant.
+
+The ZuZo Knowledge Base has no relevant information for this question, so answer from your own general pet-care knowledge.
+
+RULES:
+- Be helpful, calm, and supportive; use simple language for pet owners.
+- Never diagnose diseases with certainty. Never prescribe medicines or dosages.
+- Always recommend consulting a licensed veterinarian for serious/urgent issues.
+- Only answer questions related to pet care (health, nutrition, grooming, behavior, training, vaccinations, wellness).
+- Start your reply with EXACTLY this line, then a blank line: "${GENERAL_KNOWLEDGE_NOTE}"
+- End your reply with a blank line then: "This information is for educational purposes only and does not replace professional veterinary care."`;
 const DEDUP_JACCARD = 0.85;
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
 const LOVABLE_AI_BASE = "https://ai.gateway.lovable.dev/v1";
@@ -394,37 +408,37 @@ export const Route = createFileRoute("/api/chat")({
         }
 
 
-        // 4-9. Embed + retrieve + filter + dedupe
+        // 4-9. Embed + retrieve + filter + dedupe (with lowered-threshold retry)
         const embedding = await embedQuery(userQuestion, geminiKey);
         let chunks: Chunk[] = [];
-        if (embedding && embedding.length === EMBED_DIMS) {
+        const runMatch = async (threshold: number) => {
           const { data: matches, error: matchErr } = await supabase.rpc(
             "match_knowledge_chunks" as never,
             {
-              query_embedding: `[${embedding.join(",")}]` as unknown as never,
+              query_embedding: `[${embedding!.join(",")}]` as unknown as never,
               match_count: MAX_CHUNKS,
-              min_similarity: MIN_SIMILARITY,
+              min_similarity: threshold,
             } as never,
           );
           if (matchErr) {
             console.error("[rag] match_knowledge_chunks error", matchErr.message);
-          } else if (Array.isArray(matches)) {
-            chunks = dedupe(matches as unknown as Chunk[]).slice(0, MAX_CHUNKS);
+            return [] as Chunk[];
           }
-        }
+          return Array.isArray(matches)
+            ? dedupe(matches as unknown as Chunk[]).slice(0, MAX_CHUNKS)
+            : [];
+        };
 
-        // No relevant KB context → fixed fallback (no Gemini call)
-        if (chunks.length === 0) {
-          console.log("[rag] RAG: No relevant chunks");
-          return staticStreamResponse(NO_KB_MATCH_FALLBACK, messages, persistAssistant);
+        if (embedding && embedding.length === EMBED_DIMS) {
+          chunks = await runMatch(MIN_SIMILARITY);
+          console.log(`[rag] Retrieved ${chunks.length} chunks @ threshold ${MIN_SIMILARITY}`);
+          if (chunks.length === 0) {
+            chunks = await runMatch(FALLBACK_MIN_SIMILARITY);
+            console.log(`[rag] Retrieved ${chunks.length} chunks @ threshold ${FALLBACK_MIN_SIMILARITY} (retry)`);
+          }
+        } else {
+          console.error("[rag] embedding unavailable — skipping KB retrieval");
         }
-        console.log(`[rag] RAG: Retrieved ${chunks.length} chunks`);
-        console.log("[rag] RAG: Calling Gemini");
-
-        // 10-12. Build context, call Gemini
-        const kbBlock = buildContextBlock(chunks);
-        const titles = Array.from(new Set(chunks.map((c) => c.document_title)));
-        const sourceLine = `\n\n— Answer based on ZuZo AI Knowledge Base (${chunks.length} source${chunks.length === 1 ? "" : "s"}: ${titles.join(", ")})`;
 
         const lovableKey = process.env.LOVABLE_API_KEY;
         if (!lovableKey) {
@@ -439,7 +453,16 @@ export const Route = createFileRoute("/api/chat")({
         });
         const model = gateway(CHAT_MODEL);
 
-        const augmentedSystem = `${SYSTEM_PROMPT}\n\nKNOWLEDGE BASE CONTEXT (use this to answer):\n\n${kbBlock}`;
+        const hasKB = chunks.length > 0;
+        const titles = hasKB ? Array.from(new Set(chunks.map((c) => c.document_title))) : [];
+        const sourceLine = hasKB
+          ? `\n\n— Answer based on ZuZo AI Knowledge Base (${chunks.length} source${chunks.length === 1 ? "" : "s"}: ${titles.join(", ")})`
+          : "";
+        const augmentedSystem = hasKB
+          ? `${SYSTEM_PROMPT}\n\nKNOWLEDGE BASE CONTEXT (use this to answer):\n\n${buildContextBlock(chunks)}`
+          : GENERAL_SYSTEM_PROMPT;
+
+        console.log(hasKB ? "[rag] Calling Gemini (KB-grounded)" : "[rag] Calling Gemini (general knowledge fallback)");
 
         try {
           const result = streamText({
@@ -461,12 +484,10 @@ export const Route = createFileRoute("/api/chat")({
                 .trim();
               if (!text) {
                 text = GENERIC_ERROR_FALLBACK;
-              } else if (
-                text !== NO_KB_MATCH_FALLBACK &&
-                text !== OUT_OF_SCOPE_FALLBACK &&
-                !text.includes("Answer based on ZuZo AI Knowledge Base")
-              ) {
+              } else if (hasKB && !text.includes("Answer based on ZuZo AI Knowledge Base")) {
                 text = `${text}${sourceLine}`;
+              } else if (!hasKB && !text.includes(GENERAL_KNOWLEDGE_NOTE)) {
+                text = `${GENERAL_KNOWLEDGE_NOTE}\n\n${text}`;
               }
               await persistAssistant(text);
             },
