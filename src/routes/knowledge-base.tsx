@@ -106,10 +106,7 @@ function KnowledgeBasePage() {
         navigate({ to: "/signin", replace: true });
         return;
       }
-      if (mounted) {
-        setReady(true);
-        await refresh();
-      }
+      if (mounted) setReady(true);
     })();
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       if (!session) navigate({ to: "/signin", replace: true });
@@ -117,6 +114,12 @@ function KnowledgeBasePage() {
     return () => { mounted = false; sub.subscription.unsubscribe(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
+
+  useEffect(() => {
+    if (ready && isStaff) refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, isStaff]);
+
 
   async function onUpload() {
     if (!file) return toast.error("Choose a file");
