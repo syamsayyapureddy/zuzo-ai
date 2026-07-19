@@ -16,15 +16,26 @@ const baseNav = [
 ] as const;
 
 
+type NavItem = { to: string; label: string; icon: typeof Home };
+
 export function AppHeader() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const { isOwner, isStaff } = useRole();
+
+  const navItems: NavItem[] = [
+    ...baseNav.slice(0, 3),
+    ...(isStaff ? [{ to: "/knowledge-base", label: "Knowledge Base", icon: BookOpen }] : []),
+    ...(isOwner ? [{ to: "/users", label: "User Management", icon: UsersIcon }] : []),
+    ...baseNav.slice(3),
+  ];
 
   async function onSignOut() {
     await supabase.auth.signOut();
     toast.success("Signed out");
     navigate({ to: "/signin", replace: true });
   }
+
 
   return (
     <header className="mx-auto max-w-5xl px-5 sm:px-8 h-16 sm:h-18 flex items-center justify-between">
