@@ -1,10 +1,13 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, Plus, PawPrint, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
 import { FloatingAssistantButton } from "@/components/FloatingAssistantButton";
 import { features } from "@/lib/features";
+import { Button } from "@/components/ui/button";
+import { useSignedPhotoUrls } from "@/hooks/use-signed-photo-urls";
+import { type Pet, speciesEmoji, petAge } from "@/lib/pets";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
