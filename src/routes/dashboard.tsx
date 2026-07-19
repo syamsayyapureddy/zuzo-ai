@@ -26,6 +26,8 @@ function Dashboard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [pets, setPets] = useState<Pet[]>([]);
+  const photoUrls = useSignedPhotoUrls(pets);
 
   useEffect(() => {
     let mounted = true;
@@ -35,13 +37,14 @@ function Dashboard() {
         navigate({ to: "/signin", replace: true });
         return;
       }
-      const { data } = await supabase
-        .from("profiles")
-        .select("full_name, pet_name, email")
-        .eq("id", session.user.id)
-        .maybeSingle();
+      const [{ data: p }, { data: petRows }] = await Promise.all([
+        supabase.from("profiles").select("full_name, pet_name, email").eq("id", session.user.id).maybeSingle(),
+        supabase.from("pets").select("*").eq("user_id", session.user.id)
+          .order("is_default", { ascending: false }).order("created_at", { ascending: true }),
+      ]);
       if (mounted) {
-        setProfile(data ?? { full_name: null, pet_name: null, email: session.user.email ?? null });
+        setProfile(p ?? { full_name: null, pet_name: null, email: session.user.email ?? null });
+        setPets((petRows ?? []) as Pet[]);
         setLoading(false);
       }
     })();
