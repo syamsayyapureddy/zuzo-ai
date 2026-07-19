@@ -16,6 +16,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
 import { FloatingAssistantButton } from "@/components/FloatingAssistantButton";
+import { useRole } from "@/hooks/use-role";
+import { ShieldAlert } from "lucide-react";
 import {
   createKnowledgeDocument,
   deleteKnowledgeDocument,
@@ -23,6 +25,7 @@ import {
   listKnowledgeDocuments,
   processKnowledgeDocument,
 } from "@/lib/knowledge-base.functions";
+
 
 export const Route = createFileRoute("/knowledge-base")({
   head: () => ({
