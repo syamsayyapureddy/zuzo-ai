@@ -16,6 +16,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
 import { FloatingAssistantButton } from "@/components/FloatingAssistantButton";
+import { useRole } from "@/hooks/use-role";
+import { ShieldAlert } from "lucide-react";
 import {
   createKnowledgeDocument,
   deleteKnowledgeDocument,
@@ -23,6 +25,7 @@ import {
   listKnowledgeDocuments,
   processKnowledgeDocument,
 } from "@/lib/knowledge-base.functions";
+
 
 export const Route = createFileRoute("/knowledge-base")({
   head: () => ({
@@ -68,6 +71,7 @@ function statusBadge(status: string) {
 
 function KnowledgeBasePage() {
   const navigate = useNavigate();
+  const { isStaff, loading: roleLoading } = useRole();
   const [ready, setReady] = useState(false);
   const [docs, setDocs] = useState<Doc[]>([]);
   const [loading, setLoading] = useState(false);
@@ -102,10 +106,7 @@ function KnowledgeBasePage() {
         navigate({ to: "/signin", replace: true });
         return;
       }
-      if (mounted) {
-        setReady(true);
-        await refresh();
-      }
+      if (mounted) setReady(true);
     })();
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       if (!session) navigate({ to: "/signin", replace: true });
@@ -113,6 +114,12 @@ function KnowledgeBasePage() {
     return () => { mounted = false; sub.subscription.unsubscribe(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
+
+  useEffect(() => {
+    if (ready && isStaff) refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, isStaff]);
+
 
   async function onUpload() {
     if (!file) return toast.error("Choose a file");
@@ -194,13 +201,31 @@ function KnowledgeBasePage() {
     }
   }
 
-  if (!ready) {
+  if (!ready || roleLoading) {
     return (
       <div className="min-h-screen grid place-items-center gradient-hero-bg">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
+
+  if (!isStaff) {
+    return (
+      <div className="min-h-screen gradient-hero-bg">
+        <AppHeader />
+        <main className="mx-auto max-w-lg px-5 py-16 text-center">
+          <div className="glass rounded-3xl p-10 shadow-glow">
+            <ShieldAlert className="h-10 w-10 text-destructive mx-auto" />
+            <h1 className="mt-4 font-display text-2xl font-bold">403 — Unauthorized</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              The Knowledge Base is available to Owners and Admins only.
+            </p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
 
   return (
     <div className="min-h-screen gradient-hero-bg">

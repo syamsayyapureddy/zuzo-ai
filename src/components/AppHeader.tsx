@@ -1,29 +1,41 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Menu, Bell, Home, Bot, BookOpen, User, Settings, LogOut, PawPrint } from "lucide-react";
+import { Menu, Bell, Home, Bot, BookOpen, User, Settings, LogOut, PawPrint, Users as UsersIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { BrandMark } from "@/components/AuthShell";
+import { useRole } from "@/hooks/use-role";
 
-const navItems = [
+const baseNav = [
   { to: "/dashboard", label: "Dashboard", icon: Home },
   { to: "/pets", label: "My Pets", icon: PawPrint },
   { to: "/assistant", label: "AI Assistant", icon: Bot },
-  { to: "/knowledge-base", label: "Knowledge Base", icon: BookOpen },
   { to: "/profile", label: "Profile", icon: User },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
+
+type NavItem = { to: string; label: string; icon: typeof Home };
+
 export function AppHeader() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const { isOwner, isStaff } = useRole();
+
+  const navItems: NavItem[] = [
+    ...baseNav.slice(0, 3),
+    ...(isStaff ? [{ to: "/knowledge-base", label: "Knowledge Base", icon: BookOpen }] : []),
+    ...(isOwner ? [{ to: "/users", label: "User Management", icon: UsersIcon }] : []),
+    ...baseNav.slice(3),
+  ];
 
   async function onSignOut() {
     await supabase.auth.signOut();
     toast.success("Signed out");
     navigate({ to: "/signin", replace: true });
   }
+
 
   return (
     <header className="mx-auto max-w-5xl px-5 sm:px-8 h-16 sm:h-18 flex items-center justify-between">
@@ -44,7 +56,8 @@ export function AppHeader() {
             {navItems.map(({ to, label, icon: Icon }) => (
               <Link
                 key={to}
-                to={to}
+                to={to as "/dashboard"}
+
                 onClick={() => setOpen(false)}
                 activeProps={{ className: "bg-primary/10 text-primary" }}
                 className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium hover:bg-primary/5 transition-colors"
@@ -53,6 +66,7 @@ export function AppHeader() {
                 {label}
               </Link>
             ))}
+
             <button
               onClick={() => { setOpen(false); onSignOut(); }}
               className="mt-2 flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/5 transition-colors text-left"
