@@ -71,6 +71,7 @@ function statusBadge(status: string) {
 
 function KnowledgeBasePage() {
   const navigate = useNavigate();
+  const { isStaff, loading: roleLoading } = useRole();
   const [ready, setReady] = useState(false);
   const [docs, setDocs] = useState<Doc[]>([]);
   const [loading, setLoading] = useState(false);
