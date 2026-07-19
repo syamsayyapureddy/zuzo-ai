@@ -8,10 +8,11 @@ export type Feature = {
   title: string;
   description: string;
   icon: LucideIcon;
-  to?: "/assistant";
+  to?: "/assistant" | "/pets";
 };
 
 export const features: Feature[] = [
+  { title: "Multi-Pet Management", description: "Care for every pet", icon: PawPrint, to: "/pets" },
   { title: "AI Symptom Scanner", description: "Scan symptoms with AI insights", icon: ScanSearch },
   { title: "Diet & Nutrition Planner", description: "Personalized meal plans", icon: Apple },
   { title: "Vaccination Reminder", description: "Never miss a shot", icon: Syringe },
@@ -23,7 +24,6 @@ export const features: Feature[] = [
   { title: "Pet Activity Tracker", description: "Steps, play, and rest", icon: Footprints },
   { title: "Behavior Analysis", description: "Understand mood patterns", icon: Brain },
   { title: "Breed Identification", description: "Identify breed from a photo", icon: PawPrint },
-  { title: "Multi-Pet Management", description: "Care for every pet", icon: PawPrint },
   { title: "Emergency Help", description: "Quick emergency guidance", icon: Siren },
   { title: "Care Tips", description: "Daily tips and advice", icon: Lightbulb },
   { title: "AI Assistant", description: "Chat with ZuZo AI", icon: Bot, to: "/assistant" },
