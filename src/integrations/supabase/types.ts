@@ -163,6 +163,75 @@ export type Database = {
         }
         Relationships: []
       }
+      pets: {
+        Row: {
+          age_text: string | null
+          allergies: string | null
+          breed: string | null
+          color: string | null
+          created_at: string
+          current_medications: string | null
+          date_of_birth: string | null
+          gender: string | null
+          id: string
+          is_default: boolean
+          medical_conditions: string | null
+          microchip_id: string | null
+          name: string
+          notes: string | null
+          photo_url: string | null
+          species: string
+          updated_at: string
+          user_id: string
+          vaccination_status: string | null
+          weight_kg: number | null
+        }
+        Insert: {
+          age_text?: string | null
+          allergies?: string | null
+          breed?: string | null
+          color?: string | null
+          created_at?: string
+          current_medications?: string | null
+          date_of_birth?: string | null
+          gender?: string | null
+          id?: string
+          is_default?: boolean
+          medical_conditions?: string | null
+          microchip_id?: string | null
+          name: string
+          notes?: string | null
+          photo_url?: string | null
+          species: string
+          updated_at?: string
+          user_id: string
+          vaccination_status?: string | null
+          weight_kg?: number | null
+        }
+        Update: {
+          age_text?: string | null
+          allergies?: string | null
+          breed?: string | null
+          color?: string | null
+          created_at?: string
+          current_medications?: string | null
+          date_of_birth?: string | null
+          gender?: string | null
+          id?: string
+          is_default?: boolean
+          medical_conditions?: string | null
+          microchip_id?: string | null
+          name?: string
+          notes?: string | null
+          photo_url?: string | null
+          species?: string
+          updated_at?: string
+          user_id?: string
+          vaccination_status?: string | null
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
