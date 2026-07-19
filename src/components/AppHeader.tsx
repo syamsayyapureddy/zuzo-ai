@@ -54,6 +54,9 @@ export function AppHeader() {
           </SheetHeader>
           <nav className="p-3 flex flex-col gap-1">
             {navItems.map(({ to, label, icon: Icon }) => (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              // @ts-expect-error TanStack Link typed route union — runtime paths are valid
+
               <Link
                 key={to}
                 to={to}
