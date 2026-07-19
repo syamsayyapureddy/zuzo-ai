@@ -83,6 +83,64 @@ function Dashboard() {
         </div>
 
         <section className="mt-8 sm:mt-10">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight">My Pets</h2>
+            <div className="flex items-center gap-2">
+              {pets.length > 0 && (
+                <Link to="/pets" className="text-sm font-medium text-primary hover:underline">View all</Link>
+              )}
+              <Button asChild size="sm" className="shadow-glow">
+                <Link to="/pets">
+                  <Plus className="h-4 w-4 mr-1" /> Add Pet
+                </Link>
+              </Button>
+            </div>
+          </div>
+
+          {pets.length === 0 ? (
+            <div className="glass rounded-2xl p-8 sm:p-10 text-center animate-fade-up">
+              <div className="mx-auto h-14 w-14 rounded-2xl gradient-cta grid place-items-center shadow-soft mb-3">
+                <PawPrint className="h-7 w-7 text-primary-foreground" />
+              </div>
+              <div className="font-semibold text-lg">No pets yet</div>
+              <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
+                Add your first pet to unlock personalized reminders, diet plans, and AI health tips.
+              </p>
+              <Button asChild className="mt-4 shadow-glow">
+                <Link to="/pets"><Plus className="h-4 w-4 mr-2" /> Add Your First Pet</Link>
+              </Button>
+            </div>
+          ) : (
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {pets.slice(0, 6).map((pet) => {
+                const age = petAge(pet);
+                const photoUrl = pet.photo_url ? photoUrls[pet.photo_url] : undefined;
+                return (
+                  <Link key={pet.id} to="/pets" className="glass rounded-2xl p-5 flex items-center gap-4 transition-all hover:-translate-y-0.5 hover:shadow-glow">
+                    <div className="h-14 w-14 rounded-2xl glass-strong grid place-items-center text-2xl overflow-hidden shrink-0">
+                      {photoUrl ? (
+                        <img src={photoUrl} alt={pet.name} className="h-full w-full object-cover" />
+                      ) : (
+                        <span>{speciesEmoji(pet.species)}</span>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <div className="font-semibold truncate">{pet.name}</div>
+                        {pet.is_default && <Star className="h-3.5 w-3.5 text-primary fill-current" />}
+                      </div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {[pet.species, pet.breed, age].filter(Boolean).join(" · ")}
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        <section className="mt-8 sm:mt-10">
           <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight mb-4 sm:mb-6">
             Features
           </h2>
