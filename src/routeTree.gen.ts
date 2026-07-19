@@ -13,6 +13,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PetsRouteImport } from './routes/pets'
 import { Route as KnowledgeBaseRouteImport } from './routes/knowledge-base'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -38,6 +39,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PetsRoute = PetsRouteImport.update({
+  id: '/pets',
+  path: '/pets',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KnowledgeBaseRoute = KnowledgeBaseRouteImport.update({
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/knowledge-base': typeof KnowledgeBaseRoute
+  '/pets': typeof PetsRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/signin': typeof SigninRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/knowledge-base': typeof KnowledgeBaseRoute
+  '/pets': typeof PetsRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/signin': typeof SigninRoute
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/knowledge-base': typeof KnowledgeBaseRoute
+  '/pets': typeof PetsRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/signin': typeof SigninRoute
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/knowledge-base'
+    | '/pets'
     | '/profile'
     | '/settings'
     | '/signin'
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/knowledge-base'
+    | '/pets'
     | '/profile'
     | '/settings'
     | '/signin'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/knowledge-base'
+    | '/pets'
     | '/profile'
     | '/settings'
     | '/signin'
@@ -153,6 +165,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
   KnowledgeBaseRoute: typeof KnowledgeBaseRoute
+  PetsRoute: typeof PetsRoute
   ProfileRoute: typeof ProfileRoute
   SettingsRoute: typeof SettingsRoute
   SigninRoute: typeof SigninRoute
@@ -188,6 +201,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pets': {
+      id: '/pets'
+      path: '/pets'
+      fullPath: '/pets'
+      preLoaderRoute: typeof PetsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/knowledge-base': {
@@ -241,6 +261,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
   KnowledgeBaseRoute: KnowledgeBaseRoute,
+  PetsRoute: PetsRoute,
   ProfileRoute: ProfileRoute,
   SettingsRoute: SettingsRoute,
   SigninRoute: SigninRoute,
