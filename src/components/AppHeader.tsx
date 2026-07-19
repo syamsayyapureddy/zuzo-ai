@@ -1,19 +1,20 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Menu, Bell, Home, Bot, BookOpen, User, Settings, LogOut, PawPrint } from "lucide-react";
+import { Menu, Bell, Home, Bot, BookOpen, User, Settings, LogOut, PawPrint, Users as UsersIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { BrandMark } from "@/components/AuthShell";
+import { useRole } from "@/hooks/use-role";
 
-const navItems = [
+const baseNav = [
   { to: "/dashboard", label: "Dashboard", icon: Home },
   { to: "/pets", label: "My Pets", icon: PawPrint },
   { to: "/assistant", label: "AI Assistant", icon: Bot },
-  { to: "/knowledge-base", label: "Knowledge Base", icon: BookOpen },
   { to: "/profile", label: "Profile", icon: User },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
+
 
 export function AppHeader() {
   const navigate = useNavigate();
