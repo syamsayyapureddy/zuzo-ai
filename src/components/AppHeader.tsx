@@ -54,12 +54,10 @@ export function AppHeader() {
           </SheetHeader>
           <nav className="p-3 flex flex-col gap-1">
             {navItems.map(({ to, label, icon: Icon }) => (
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              // @ts-expect-error TanStack Link typed route union — runtime paths are valid
-
               <Link
                 key={to}
-                to={to}
+                to={to as "/dashboard"}
+
                 onClick={() => setOpen(false)}
                 activeProps={{ className: "bg-primary/10 text-primary" }}
                 className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium hover:bg-primary/5 transition-colors"
