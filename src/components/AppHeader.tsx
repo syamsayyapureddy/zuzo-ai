@@ -65,6 +65,7 @@ export function AppHeader() {
                 {label}
               </Link>
             ))}
+
             <button
               onClick={() => { setOpen(false); onSignOut(); }}
               className="mt-2 flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/5 transition-colors text-left"
