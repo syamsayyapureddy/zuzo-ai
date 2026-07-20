@@ -20,6 +20,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiNutritionRouteImport } from './routes/api/nutrition'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 
 const UsersRoute = UsersRouteImport.update({
@@ -77,6 +78,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiNutritionRoute = ApiNutritionRouteImport.update({
+  id: '/api/nutrition',
+  path: '/api/nutrition',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/users': typeof UsersRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/nutrition': typeof ApiNutritionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/users': typeof UsersRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/nutrition': typeof ApiNutritionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/users': typeof UsersRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/nutrition': typeof ApiNutritionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/users'
     | '/api/chat'
+    | '/api/nutrition'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/users'
     | '/api/chat'
+    | '/api/nutrition'
   id:
     | '__root__'
     | '/'
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/users'
     | '/api/chat'
+    | '/api/nutrition'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -184,6 +196,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   UsersRoute: typeof UsersRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiNutritionRoute: typeof ApiNutritionRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -265,6 +278,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/nutrition': {
+      id: '/api/nutrition'
+      path: '/api/nutrition'
+      fullPath: '/api/nutrition'
+      preLoaderRoute: typeof ApiNutritionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/chat': {
       id: '/api/chat'
       path: '/api/chat'
@@ -288,17 +308,8 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   UsersRoute: UsersRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiNutritionRoute: ApiNutritionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
