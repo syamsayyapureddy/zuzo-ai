@@ -15,11 +15,13 @@ import { Route as SigninRouteImport } from './routes/signin'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PetsRouteImport } from './routes/pets'
+import { Route as NutritionRouteImport } from './routes/nutrition'
 import { Route as KnowledgeBaseRouteImport } from './routes/knowledge-base'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiNutritionRouteImport } from './routes/api/nutrition'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 
 const UsersRoute = UsersRouteImport.update({
@@ -52,6 +54,11 @@ const PetsRoute = PetsRouteImport.update({
   path: '/pets',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NutritionRoute = NutritionRouteImport.update({
+  id: '/nutrition',
+  path: '/nutrition',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const KnowledgeBaseRoute = KnowledgeBaseRouteImport.update({
   id: '/knowledge-base',
   path: '/knowledge-base',
@@ -77,6 +84,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiNutritionRoute = ApiNutritionRouteImport.update({
+  id: '/api/nutrition',
+  path: '/api/nutrition',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
@@ -89,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/knowledge-base': typeof KnowledgeBaseRoute
+  '/nutrition': typeof NutritionRoute
   '/pets': typeof PetsRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
@@ -96,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/users': typeof UsersRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/nutrition': typeof ApiNutritionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -103,6 +117,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/knowledge-base': typeof KnowledgeBaseRoute
+  '/nutrition': typeof NutritionRoute
   '/pets': typeof PetsRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
@@ -110,6 +125,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/users': typeof UsersRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/nutrition': typeof ApiNutritionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -118,6 +134,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/knowledge-base': typeof KnowledgeBaseRoute
+  '/nutrition': typeof NutritionRoute
   '/pets': typeof PetsRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
@@ -125,6 +142,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/users': typeof UsersRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/nutrition': typeof ApiNutritionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -134,6 +152,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/knowledge-base'
+    | '/nutrition'
     | '/pets'
     | '/profile'
     | '/settings'
@@ -141,6 +160,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/users'
     | '/api/chat'
+    | '/api/nutrition'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -148,6 +168,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/knowledge-base'
+    | '/nutrition'
     | '/pets'
     | '/profile'
     | '/settings'
@@ -155,6 +176,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/users'
     | '/api/chat'
+    | '/api/nutrition'
   id:
     | '__root__'
     | '/'
@@ -162,6 +184,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/knowledge-base'
+    | '/nutrition'
     | '/pets'
     | '/profile'
     | '/settings'
@@ -169,6 +192,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/users'
     | '/api/chat'
+    | '/api/nutrition'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -177,6 +201,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
   KnowledgeBaseRoute: typeof KnowledgeBaseRoute
+  NutritionRoute: typeof NutritionRoute
   PetsRoute: typeof PetsRoute
   ProfileRoute: typeof ProfileRoute
   SettingsRoute: typeof SettingsRoute
@@ -184,6 +209,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   UsersRoute: typeof UsersRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiNutritionRoute: typeof ApiNutritionRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -230,6 +256,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PetsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/nutrition': {
+      id: '/nutrition'
+      path: '/nutrition'
+      fullPath: '/nutrition'
+      preLoaderRoute: typeof NutritionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/knowledge-base': {
       id: '/knowledge-base'
       path: '/knowledge-base'
@@ -265,6 +298,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/nutrition': {
+      id: '/api/nutrition'
+      path: '/api/nutrition'
+      fullPath: '/api/nutrition'
+      preLoaderRoute: typeof ApiNutritionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/chat': {
       id: '/api/chat'
       path: '/api/chat'
@@ -281,6 +321,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
   KnowledgeBaseRoute: KnowledgeBaseRoute,
+  NutritionRoute: NutritionRoute,
   PetsRoute: PetsRoute,
   ProfileRoute: ProfileRoute,
   SettingsRoute: SettingsRoute,
@@ -288,6 +329,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   UsersRoute: UsersRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiNutritionRoute: ApiNutritionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
