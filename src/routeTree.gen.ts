@@ -15,6 +15,7 @@ import { Route as SigninRouteImport } from './routes/signin'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PetsRouteImport } from './routes/pets'
+import { Route as NutritionRouteImport } from './routes/nutrition'
 import { Route as KnowledgeBaseRouteImport } from './routes/knowledge-base'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -51,6 +52,11 @@ const ProfileRoute = ProfileRouteImport.update({
 const PetsRoute = PetsRouteImport.update({
   id: '/pets',
   path: '/pets',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NutritionRoute = NutritionRouteImport.update({
+  id: '/nutrition',
+  path: '/nutrition',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KnowledgeBaseRoute = KnowledgeBaseRouteImport.update({
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/knowledge-base': typeof KnowledgeBaseRoute
+  '/nutrition': typeof NutritionRoute
   '/pets': typeof PetsRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/knowledge-base': typeof KnowledgeBaseRoute
+  '/nutrition': typeof NutritionRoute
   '/pets': typeof PetsRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
@@ -126,6 +134,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/knowledge-base': typeof KnowledgeBaseRoute
+  '/nutrition': typeof NutritionRoute
   '/pets': typeof PetsRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
@@ -143,6 +152,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/knowledge-base'
+    | '/nutrition'
     | '/pets'
     | '/profile'
     | '/settings'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/knowledge-base'
+    | '/nutrition'
     | '/pets'
     | '/profile'
     | '/settings'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/knowledge-base'
+    | '/nutrition'
     | '/pets'
     | '/profile'
     | '/settings'
@@ -189,6 +201,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
   KnowledgeBaseRoute: typeof KnowledgeBaseRoute
+  NutritionRoute: typeof NutritionRoute
   PetsRoute: typeof PetsRoute
   ProfileRoute: typeof ProfileRoute
   SettingsRoute: typeof SettingsRoute
@@ -241,6 +254,13 @@ declare module '@tanstack/react-router' {
       path: '/pets'
       fullPath: '/pets'
       preLoaderRoute: typeof PetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nutrition': {
+      id: '/nutrition'
+      path: '/nutrition'
+      fullPath: '/nutrition'
+      preLoaderRoute: typeof NutritionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/knowledge-base': {
@@ -301,6 +321,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
   KnowledgeBaseRoute: KnowledgeBaseRoute,
+  NutritionRoute: NutritionRoute,
   PetsRoute: PetsRoute,
   ProfileRoute: ProfileRoute,
   SettingsRoute: SettingsRoute,
