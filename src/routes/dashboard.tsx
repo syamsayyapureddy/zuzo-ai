@@ -66,6 +66,17 @@ function Dashboard() {
     );
   }
 
+  const vaccCounts = (() => {
+    const c = { due_today: 0, upcoming: 0, overdue: 0 };
+    for (const v of vaccinations) {
+      const s = computeStatus(v);
+      if (s === "due_today") c.due_today += 1;
+      else if (s === "overdue") c.overdue += 1;
+      else if (s === "upcoming") c.upcoming += 1;
+    }
+    return c;
+  })();
+
   const name = profile?.full_name?.split(" ")[0] || "there";
 
   return (
