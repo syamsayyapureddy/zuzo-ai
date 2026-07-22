@@ -156,6 +156,27 @@ function Dashboard() {
         </section>
 
         <section className="mt-8 sm:mt-10">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight">Vaccinations</h2>
+            <Link to="/vaccinations" className="text-sm font-medium text-primary hover:underline">View all</Link>
+          </div>
+          <Link to="/vaccinations" className="block glass rounded-2xl p-5 sm:p-6 transition-all hover:-translate-y-0.5 hover:shadow-glow">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-2xl gradient-cta grid place-items-center shadow-soft shrink-0">
+                <Syringe className="h-6 w-6 text-primary-foreground" />
+              </div>
+              <div className="grid grid-cols-3 gap-4 sm:gap-8 flex-1">
+                <VaccStat label="Due Today" value={vaccCounts.due_today} tone="text-amber-600 dark:text-amber-400" />
+                <VaccStat label="Overdue" value={vaccCounts.overdue} tone="text-destructive" />
+                <VaccStat label="Upcoming" value={vaccCounts.upcoming} tone="text-primary" />
+              </div>
+            </div>
+          </Link>
+        </section>
+
+
+
+        <section className="mt-8 sm:mt-10">
           <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight mb-4 sm:mb-6">
             Features
           </h2>
