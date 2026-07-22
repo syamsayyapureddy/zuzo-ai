@@ -28,6 +28,7 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [pets, setPets] = useState<Pet[]>([]);
+  const [vaccinations, setVaccinations] = useState<Vaccination[]>([]);
   const photoUrls = useSignedPhotoUrls(pets);
 
   useEffect(() => {
@@ -38,14 +39,16 @@ function Dashboard() {
         navigate({ to: "/signin", replace: true });
         return;
       }
-      const [{ data: p }, { data: petRows }] = await Promise.all([
+      const [{ data: p }, { data: petRows }, { data: vaccs }] = await Promise.all([
         supabase.from("profiles").select("full_name, pet_name, email").eq("id", session.user.id).maybeSingle(),
         supabase.from("pets").select("*").eq("user_id", session.user.id)
           .order("is_default", { ascending: false }).order("created_at", { ascending: true }),
+        supabase.from("vaccinations").select("*").eq("user_id", session.user.id),
       ]);
       if (mounted) {
         setProfile(p ?? { full_name: null, pet_name: null, email: session.user.email ?? null });
         setPets((petRows ?? []) as Pet[]);
+        setVaccinations((vaccs ?? []) as Vaccination[]);
         setLoading(false);
       }
     })();
