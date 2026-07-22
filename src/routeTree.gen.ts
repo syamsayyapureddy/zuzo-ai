@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VaccinationsRouteImport } from './routes/vaccinations'
 import { Route as UsersRouteImport } from './routes/users'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SigninRouteImport } from './routes/signin'
@@ -24,6 +25,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiNutritionRouteImport } from './routes/api/nutrition'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 
+const VaccinationsRoute = VaccinationsRouteImport.update({
+  id: '/vaccinations',
+  path: '/vaccinations',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UsersRoute = UsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/users': typeof UsersRoute
+  '/vaccinations': typeof VaccinationsRoute
   '/api/chat': typeof ApiChatRoute
   '/api/nutrition': typeof ApiNutritionRoute
 }
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/users': typeof UsersRoute
+  '/vaccinations': typeof VaccinationsRoute
   '/api/chat': typeof ApiChatRoute
   '/api/nutrition': typeof ApiNutritionRoute
 }
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/users': typeof UsersRoute
+  '/vaccinations': typeof VaccinationsRoute
   '/api/chat': typeof ApiChatRoute
   '/api/nutrition': typeof ApiNutritionRoute
 }
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
     | '/signin'
     | '/signup'
     | '/users'
+    | '/vaccinations'
     | '/api/chat'
     | '/api/nutrition'
   fileRoutesByTo: FileRoutesByTo
@@ -175,6 +185,7 @@ export interface FileRouteTypes {
     | '/signin'
     | '/signup'
     | '/users'
+    | '/vaccinations'
     | '/api/chat'
     | '/api/nutrition'
   id:
@@ -191,6 +202,7 @@ export interface FileRouteTypes {
     | '/signin'
     | '/signup'
     | '/users'
+    | '/vaccinations'
     | '/api/chat'
     | '/api/nutrition'
   fileRoutesById: FileRoutesById
@@ -208,12 +220,20 @@ export interface RootRouteChildren {
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
   UsersRoute: typeof UsersRoute
+  VaccinationsRoute: typeof VaccinationsRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiNutritionRoute: typeof ApiNutritionRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/vaccinations': {
+      id: '/vaccinations'
+      path: '/vaccinations'
+      fullPath: '/vaccinations'
+      preLoaderRoute: typeof VaccinationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/users': {
       id: '/users'
       path: '/users'
@@ -328,6 +348,7 @@ const rootRouteChildren: RootRouteChildren = {
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
   UsersRoute: UsersRoute,
+  VaccinationsRoute: VaccinationsRoute,
   ApiChatRoute: ApiChatRoute,
   ApiNutritionRoute: ApiNutritionRoute,
 }
