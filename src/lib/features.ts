@@ -8,7 +8,7 @@ export type Feature = {
   title: string;
   description: string;
   icon: LucideIcon;
-  to?: "/assistant" | "/pets" | "/nutrition";
+  to?: "/assistant" | "/pets" | "/nutrition" | "/vaccinations";
 };
 
 export const features: Feature[] = [
@@ -16,7 +16,7 @@ export const features: Feature[] = [
   { title: "AI Symptom Scanner", description: "Scan symptoms with AI insights", icon: ScanSearch },
   { title: "Diet & Nutrition Planner", description: "Personalized meal plans", icon: Apple, to: "/nutrition" },
 
-  { title: "Vaccination Reminder", description: "Never miss a shot", icon: Syringe },
+  { title: "Vaccination Reminder", description: "Never miss a shot", icon: Syringe, to: "/vaccinations" },
   { title: "Medication Reminder", description: "Track daily medications", icon: Pill },
   { title: "Vet Appointment Scheduler", description: "Book and manage visits", icon: CalendarCheck },
   { title: "Health Dashboard", description: "Vitals at a glance", icon: Activity },

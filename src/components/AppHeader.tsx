@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Menu, Bell, Home, Bot, BookOpen, User, Settings, LogOut, PawPrint, Users as UsersIcon } from "lucide-react";
+import { Menu, Bell, Home, Bot, BookOpen, User, Settings, LogOut, PawPrint, Users as UsersIcon, Syringe } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -10,6 +10,7 @@ import { useRole } from "@/hooks/use-role";
 const baseNav = [
   { to: "/dashboard", label: "Dashboard", icon: Home },
   { to: "/pets", label: "My Pets", icon: PawPrint },
+  { to: "/vaccinations", label: "Vaccinations", icon: Syringe },
   { to: "/assistant", label: "AI Assistant", icon: Bot },
   { to: "/profile", label: "Profile", icon: User },
   { to: "/settings", label: "Settings", icon: Settings },
@@ -24,10 +25,10 @@ export function AppHeader() {
   const { isOwner, isStaff } = useRole();
 
   const navItems: NavItem[] = [
-    ...baseNav.slice(0, 3),
+    ...baseNav.slice(0, 4),
     ...(isStaff ? [{ to: "/knowledge-base", label: "Knowledge Base", icon: BookOpen }] : []),
     ...(isOwner ? [{ to: "/users", label: "User Management", icon: UsersIcon }] : []),
-    ...baseNav.slice(3),
+    ...baseNav.slice(4),
   ];
 
   async function onSignOut() {
