@@ -219,3 +219,12 @@ function Dashboard() {
     </div>
   );
 }
+
+function VaccStat({ label, value, tone }: { label: string; value: number; tone: string }) {
+  return (
+    <div>
+      <div className={`text-2xl font-bold ${tone}`}>{value}</div>
+      <div className="text-xs text-muted-foreground">{label}</div>
+    </div>
+  );
+}
