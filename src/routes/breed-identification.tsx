@@ -59,6 +59,55 @@ function BreedPage() {
   const [result, setResult] = useState<BreedResult | null>(null);
   const [error, setError] = useState<string>("");
   const [scannedAt, setScannedAt] = useState<Date | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [breedChoice, setBreedChoice] = useState<FieldChoice>("replace");
+  const [colorChoice, setColorChoice] = useState<FieldChoice>("replace");
+  const [saving, setSaving] = useState(false);
+
+  function openConfirm() {
+    if (!result || !selected) return;
+    if (result.confidence < MIN_UPDATE_CONFIDENCE) {
+      toast.warning("Confidence is below 60% — automatic profile updates are disabled for this scan.");
+      return;
+    }
+    setBreedChoice(selected.breed ? "keep" : "replace");
+    setColorChoice(selected.color ? "keep" : "replace");
+    setConfirmOpen(true);
+  }
+
+  async function updatePetProfile() {
+    if (!result || !selected) return;
+    setSaving(true);
+    try {
+      const aiColor = (result.color || "").trim();
+      const patch: Record<string, unknown> = {
+        breed_confidence: result.confidence,
+        last_breed_scan_at: (scannedAt ?? new Date()).toISOString(),
+      };
+
+      if (breedChoice === "replace") patch.breed = result.primary_breed;
+      if (breedChoice === "alternative") {
+        const existing = selected.alternative_breeds ? `${selected.alternative_breeds}, ` : "";
+        patch.alternative_breeds = `${existing}${result.primary_breed}`;
+      }
+      if (aiColor && colorChoice === "replace") patch.color = aiColor;
+
+      const { data, error: upErr } = await supabase
+        .from("pets").update(patch).eq("id", selected.id).select("*").single();
+      if (upErr) throw upErr;
+
+      setPets((prev) => prev.map((p) => (p.id === selected.id ? (data as Pet) : p)));
+      setConfirmOpen(false);
+      toast.success("Pet profile updated successfully.");
+    } catch (e) {
+      console.error("[breed] profile update failed", e);
+      toast.error("Unable to update the profile.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+
 
   useEffect(() => {
     let mounted = true;
