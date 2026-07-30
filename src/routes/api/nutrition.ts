@@ -20,6 +20,8 @@ type PetInput = {
   age?: string | null;
   weight?: string | null;
   gender?: string | null;
+  allergies?: string | null;
+  medical_conditions?: string | null;
 };
 
 type Chunk = {
