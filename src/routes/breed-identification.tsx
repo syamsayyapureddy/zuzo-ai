@@ -349,11 +349,28 @@ function BreedPage() {
                     <div className="mt-4 flex flex-wrap gap-2 text-xs">
                       <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-medium">Coat: {result.coat_type}</span>
                       <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-medium">Size: {result.size_category}</span>
+                      {result.color && (
+                        <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-medium">Color: {result.color}</span>
+                      )}
                     </div>
                     {result.analysis && <p className="mt-4 text-sm text-muted-foreground">{result.analysis}</p>}
                     {scannedAt && (
                       <p className="mt-3 text-xs text-muted-foreground">Scanned {scannedAt.toLocaleString()}</p>
                     )}
+                    {selected && (
+                      <div className="mt-5">
+                        <Button onClick={openConfirm} disabled={result.confidence < MIN_UPDATE_CONFIDENCE} className="shadow-glow">
+                          <PencilLine className="h-4 w-4 mr-2" /> Update Pet Profile
+                        </Button>
+                        {result.confidence < MIN_UPDATE_CONFIDENCE && (
+                          <p className="mt-2 text-xs text-destructive">
+                            Confidence is below 60% — profile updates are disabled for this scan.
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
                   </div>
                 </div>
 
