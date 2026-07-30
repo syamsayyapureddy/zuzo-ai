@@ -45,6 +45,7 @@ function NutritionPage() {
   const [token, setToken] = useState("");
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<PlanResponse | null>(null);
+  const [instructions, setInstructions] = useState("");
 
   useEffect(() => {
     let mounted = true;
