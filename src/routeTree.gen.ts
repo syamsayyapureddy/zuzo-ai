@@ -20,10 +20,12 @@ import { Route as NutritionRouteImport } from './routes/nutrition'
 import { Route as KnowledgeBaseRouteImport } from './routes/knowledge-base'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as BreedIdentificationRouteImport } from './routes/breed-identification'
 import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiNutritionRouteImport } from './routes/api/nutrition'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as ApiBreedRouteImport } from './routes/api/breed'
 
 const VaccinationsRoute = VaccinationsRouteImport.update({
   id: '/vaccinations',
@@ -80,6 +82,11 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BreedIdentificationRoute = BreedIdentificationRouteImport.update({
+  id: '/breed-identification',
+  path: '/breed-identification',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AssistantRoute = AssistantRouteImport.update({
   id: '/assistant',
   path: '/assistant',
@@ -100,10 +107,16 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiBreedRoute = ApiBreedRouteImport.update({
+  id: '/api/breed',
+  path: '/api/breed',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/assistant': typeof AssistantRoute
+  '/breed-identification': typeof BreedIdentificationRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/knowledge-base': typeof KnowledgeBaseRoute
@@ -115,12 +128,14 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/users': typeof UsersRoute
   '/vaccinations': typeof VaccinationsRoute
+  '/api/breed': typeof ApiBreedRoute
   '/api/chat': typeof ApiChatRoute
   '/api/nutrition': typeof ApiNutritionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/assistant': typeof AssistantRoute
+  '/breed-identification': typeof BreedIdentificationRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/knowledge-base': typeof KnowledgeBaseRoute
@@ -132,6 +147,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/users': typeof UsersRoute
   '/vaccinations': typeof VaccinationsRoute
+  '/api/breed': typeof ApiBreedRoute
   '/api/chat': typeof ApiChatRoute
   '/api/nutrition': typeof ApiNutritionRoute
 }
@@ -139,6 +155,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/assistant': typeof AssistantRoute
+  '/breed-identification': typeof BreedIdentificationRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/knowledge-base': typeof KnowledgeBaseRoute
@@ -150,6 +167,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/users': typeof UsersRoute
   '/vaccinations': typeof VaccinationsRoute
+  '/api/breed': typeof ApiBreedRoute
   '/api/chat': typeof ApiChatRoute
   '/api/nutrition': typeof ApiNutritionRoute
 }
@@ -158,6 +176,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/assistant'
+    | '/breed-identification'
     | '/contact'
     | '/dashboard'
     | '/knowledge-base'
@@ -169,12 +188,14 @@ export interface FileRouteTypes {
     | '/signup'
     | '/users'
     | '/vaccinations'
+    | '/api/breed'
     | '/api/chat'
     | '/api/nutrition'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/assistant'
+    | '/breed-identification'
     | '/contact'
     | '/dashboard'
     | '/knowledge-base'
@@ -186,12 +207,14 @@ export interface FileRouteTypes {
     | '/signup'
     | '/users'
     | '/vaccinations'
+    | '/api/breed'
     | '/api/chat'
     | '/api/nutrition'
   id:
     | '__root__'
     | '/'
     | '/assistant'
+    | '/breed-identification'
     | '/contact'
     | '/dashboard'
     | '/knowledge-base'
@@ -203,6 +226,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/users'
     | '/vaccinations'
+    | '/api/breed'
     | '/api/chat'
     | '/api/nutrition'
   fileRoutesById: FileRoutesById
@@ -210,6 +234,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AssistantRoute: typeof AssistantRoute
+  BreedIdentificationRoute: typeof BreedIdentificationRoute
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
   KnowledgeBaseRoute: typeof KnowledgeBaseRoute
@@ -221,6 +246,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   UsersRoute: typeof UsersRoute
   VaccinationsRoute: typeof VaccinationsRoute
+  ApiBreedRoute: typeof ApiBreedRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiNutritionRoute: typeof ApiNutritionRoute
 }
@@ -304,6 +330,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/breed-identification': {
+      id: '/breed-identification'
+      path: '/breed-identification'
+      fullPath: '/breed-identification'
+      preLoaderRoute: typeof BreedIdentificationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/assistant': {
       id: '/assistant'
       path: '/assistant'
@@ -332,12 +365,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/breed': {
+      id: '/api/breed'
+      path: '/api/breed'
+      fullPath: '/api/breed'
+      preLoaderRoute: typeof ApiBreedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AssistantRoute: AssistantRoute,
+  BreedIdentificationRoute: BreedIdentificationRoute,
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
   KnowledgeBaseRoute: KnowledgeBaseRoute,
@@ -349,6 +390,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   UsersRoute: UsersRoute,
   VaccinationsRoute: VaccinationsRoute,
+  ApiBreedRoute: ApiBreedRoute,
   ApiChatRoute: ApiChatRoute,
   ApiNutritionRoute: ApiNutritionRoute,
 }
