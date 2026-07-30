@@ -20,6 +20,8 @@ type PetInput = {
   age?: string | null;
   weight?: string | null;
   gender?: string | null;
+  allergies?: string | null;
+  medical_conditions?: string | null;
 };
 
 type Chunk = {
@@ -82,8 +84,9 @@ export const Route = createFileRoute("/api/nutrition")({
         const { data: userData, error: userErr } = await supabase.auth.getUser(token);
         if (userErr || !userData?.user) return new Response("Unauthorized", { status: 401 });
 
-        const body = (await request.json()) as { pet?: PetInput };
+        const body = (await request.json()) as { pet?: PetInput; instructions?: string | null };
         const pet = body.pet;
+        const userInstructions = (body.instructions ?? "").toString().trim().slice(0, 500);
         if (!pet?.name || !pet.species) {
           return new Response(JSON.stringify({ error: "Missing pet info" }), {
             status: 400, headers: { "Content-Type": "application/json" },
@@ -148,7 +151,9 @@ Rules:
 - Every field must be filled with concrete, species-appropriate values (no empty strings).
 - feeding_schedule MUST include at least Morning, Afternoon, and Evening entries.
 - recommended_foods: 4-6 items. foods_to_avoid: 4-6 items. healthy_treats: 3-5 items. tips: 5-7 bullets.
-- Keep every value short (under ~120 chars), well-organized for table display.`;
+- Keep every value short (under ~120 chars), well-organized for table display.
+- Tailor the plan to breed, species, age, weight, activity level, and any existing medical conditions or allergies.
+- If USER INSTRUCTIONS are provided, follow them wherever they are safe and species-appropriate; if a request is unsafe for the species, provide the safest alternative and note it in tips.`;
 
         const prompt = `Pet:
 - Name: ${pet.name}
@@ -157,8 +162,10 @@ Rules:
 - Age: ${pet.age || "Unknown"}
 - Weight: ${pet.weight || "Unknown"}
 - Gender: ${pet.gender || "Unknown"}
+- Allergies: ${pet.allergies || "None reported"}
+- Medical conditions: ${pet.medical_conditions || "None reported"}
 
-${hasKB ? `KNOWLEDGE BASE CONTEXT:\n${kbBlock}\n\n` : ""}Generate the diet & nutrition plan JSON now.`;
+${userInstructions ? `USER INSTRUCTIONS (owner preferences, honor if safe):\n${userInstructions}\n\n` : ""}${hasKB ? `KNOWLEDGE BASE CONTEXT:\n${kbBlock}\n\n` : ""}Generate the diet & nutrition plan JSON now.`;
 
         const gateway = createOpenAICompatible({
           name: "lovable-ai",
