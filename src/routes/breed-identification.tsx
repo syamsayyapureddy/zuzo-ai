@@ -384,7 +384,84 @@ function BreedPage() {
               <AlertTriangle className="h-4 w-4 mt-0.5 text-primary shrink-0" />
               <span>{SAFETY_NOTICE}</span>
             </div>
+
+            <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+              <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>Update Pet Profile</DialogTitle>
+                  <DialogDescription>
+                    Do you want to update this pet's information using AI-generated data?
+                  </DialogDescription>
+                </DialogHeader>
+
+                {result && selected && (
+                  <div className="space-y-5 text-sm">
+                    <div>
+                      <div className="font-semibold mb-1">Breed</div>
+                      <div className="text-muted-foreground">
+                        Current breed: {selected.breed || "—"}<br />
+                        AI result: {result.primary_breed} ({result.confidence}%)
+                      </div>
+                      <RadioGroup
+                        value={breedChoice}
+                        onValueChange={(v) => setBreedChoice(v as FieldChoice)}
+                        className="mt-2"
+                      >
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="keep" id="breed-keep" />
+                          <Label htmlFor="breed-keep">Keep current value</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="replace" id="breed-replace" />
+                          <Label htmlFor="breed-replace">Replace value</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="alternative" id="breed-alt" />
+                          <Label htmlFor="breed-alt">Save as an alternative breed</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+
+                    {(result.color || "").trim() && (
+                      <div>
+                        <div className="font-semibold mb-1">Color</div>
+                        <div className="text-muted-foreground">
+                          Current color: {selected.color || "—"}<br />
+                          AI result: {result.color}
+                        </div>
+                        <RadioGroup
+                          value={colorChoice}
+                          onValueChange={(v) => setColorChoice(v as FieldChoice)}
+                          className="mt-2"
+                        >
+                          <div className="flex items-center gap-2">
+                            <RadioGroupItem value="keep" id="color-keep" />
+                            <Label htmlFor="color-keep">Keep current value</Label>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <RadioGroupItem value="replace" id="color-replace" />
+                            <Label htmlFor="color-replace">Replace value</Label>
+                          </div>
+                        </RadioGroup>
+                      </div>
+                    )}
+
+                    <p className="text-xs text-muted-foreground">
+                      Confidence score and scan date will be saved. All other pet details stay unchanged.
+                    </p>
+                  </div>
+                )}
+
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setConfirmOpen(false)} disabled={saving}>Cancel</Button>
+                  <Button onClick={updatePetProfile} disabled={saving} className="shadow-glow">
+                    {saving ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving…</> : "Confirm update"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </>
+
         )}
       </main>
       <FloatingAssistantButton />
