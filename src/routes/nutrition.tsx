@@ -169,6 +169,25 @@ function NutritionPage() {
               {selected && (
                 <div className="mt-5">
                   <PetInfoTable pet={selected} />
+
+                  <div className="mt-4 glass-strong rounded-2xl p-4">
+                    <label htmlFor="extra-instructions" className="font-semibold text-sm">
+                      Additional Instructions (Optional)
+                    </label>
+                    <Textarea
+                      id="extra-instructions"
+                      value={instructions}
+                      maxLength={500}
+                      rows={5}
+                      onChange={(e) => setInstructions(e.target.value.slice(0, 500))}
+                      placeholder={`Examples:\n• Vegetarian diet only\n• Avoid chicken\n• Weight gain plan\n• Weight loss plan\n• Sensitive stomach\n• Allergies\n• Homemade food only`}
+                      className="mt-2 resize-none"
+                    />
+                    <div className="mt-1 text-xs text-muted-foreground text-right">
+                      {instructions.length}/500
+                    </div>
+                  </div>
+
                   {missingEssentials && (
                     <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 px-4 py-3 text-sm flex items-start gap-2">
                       <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
