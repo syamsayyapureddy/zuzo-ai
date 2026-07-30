@@ -24,7 +24,7 @@ export const features: Feature[] = [
   { title: "Nearby Vets", description: "Find trusted clinics", icon: MapPin },
   { title: "Pet Activity Tracker", description: "Steps, play, and rest", icon: Footprints },
   { title: "Behavior Analysis", description: "Understand mood patterns", icon: Brain },
-  { title: "Breed Identification", description: "Identify breed from a photo", icon: PawPrint },
+  { title: "Breed Identification", description: "Identify breed from a photo", icon: PawPrint, to: "/breed-identification" },
   { title: "Emergency Help", description: "Quick emergency guidance", icon: Siren },
   { title: "Care Tips", description: "Daily tips and advice", icon: Lightbulb },
   { title: "AI Assistant", description: "Chat with ZuZo AI", icon: Bot, to: "/assistant" },
