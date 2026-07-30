@@ -84,8 +84,9 @@ export const Route = createFileRoute("/api/nutrition")({
         const { data: userData, error: userErr } = await supabase.auth.getUser(token);
         if (userErr || !userData?.user) return new Response("Unauthorized", { status: 401 });
 
-        const body = (await request.json()) as { pet?: PetInput };
+        const body = (await request.json()) as { pet?: PetInput; instructions?: string | null };
         const pet = body.pet;
+        const userInstructions = (body.instructions ?? "").toString().trim().slice(0, 500);
         if (!pet?.name || !pet.species) {
           return new Response(JSON.stringify({ error: "Missing pet info" }), {
             status: 400, headers: { "Content-Type": "application/json" },
