@@ -1,11 +1,16 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Loader2, PawPrint, Sparkles, AlertTriangle, Upload, ScanSearch, X } from "lucide-react";
+import { Loader2, PawPrint, Sparkles, AlertTriangle, Upload, ScanSearch, X, PencilLine } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
 import { FloatingAssistantButton } from "@/components/FloatingAssistantButton";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { type Pet, speciesEmoji } from "@/lib/pets";
 
 export const Route = createFileRoute("/breed-identification")({
@@ -21,6 +26,7 @@ export const Route = createFileRoute("/breed-identification")({
 
 const ACCEPTED = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const MAX_BYTES = 10 * 1024 * 1024;
+const MIN_UPDATE_CONFIDENCE = 60;
 const SAFETY_NOTICE =
   "Breed identification is AI-generated and provided for general guidance only. Accuracy is not guaranteed and this is not a medical diagnosis — consult a licensed veterinarian for health concerns.";
 
@@ -31,9 +37,13 @@ type BreedResult = {
   physical_characteristics: string[];
   temperament: string[];
   coat_type: string;
+  color?: string;
   size_category: string;
   analysis: string;
 };
+
+type FieldChoice = "keep" | "replace" | "alternative";
+
 
 function BreedPage() {
   const navigate = useNavigate();
