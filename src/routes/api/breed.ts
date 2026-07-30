@@ -68,6 +68,7 @@ export const Route = createFileRoute("/api/breed")({
   "physical_characteristics": [string],
   "temperament": [string],
   "coat_type": string,
+  "color": string,
   "size_category": string,
   "analysis": string
 }`;
@@ -80,6 +81,7 @@ Rules:
 - confidence is an integer between 0 and 100 reflecting your true certainty.
 - alternative_breeds: 2-4 plausible alternatives with their own confidence values.
 - physical_characteristics: 4-6 short observations. temperament: 4-6 short traits.
+- color: the animal's visible coat colour/markings in a few words (empty string if unclear).
 - Support all companion species (dogs, cats, rabbits, birds, horses, etc.).
 Return ONLY a single valid JSON object matching this shape (no prose, no markdown fences):
 ${schemaHint}`;

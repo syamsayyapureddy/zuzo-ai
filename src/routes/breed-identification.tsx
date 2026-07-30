@@ -1,11 +1,16 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Loader2, PawPrint, Sparkles, AlertTriangle, Upload, ScanSearch, X } from "lucide-react";
+import { Loader2, PawPrint, Sparkles, AlertTriangle, Upload, ScanSearch, X, PencilLine } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
 import { FloatingAssistantButton } from "@/components/FloatingAssistantButton";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { type Pet, speciesEmoji } from "@/lib/pets";
 
 export const Route = createFileRoute("/breed-identification")({
@@ -21,6 +26,7 @@ export const Route = createFileRoute("/breed-identification")({
 
 const ACCEPTED = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const MAX_BYTES = 10 * 1024 * 1024;
+const MIN_UPDATE_CONFIDENCE = 60;
 const SAFETY_NOTICE =
   "Breed identification is AI-generated and provided for general guidance only. Accuracy is not guaranteed and this is not a medical diagnosis — consult a licensed veterinarian for health concerns.";
 
@@ -31,9 +37,13 @@ type BreedResult = {
   physical_characteristics: string[];
   temperament: string[];
   coat_type: string;
+  color?: string;
   size_category: string;
   analysis: string;
 };
+
+type FieldChoice = "keep" | "replace" | "alternative";
+
 
 function BreedPage() {
   const navigate = useNavigate();
@@ -49,6 +59,55 @@ function BreedPage() {
   const [result, setResult] = useState<BreedResult | null>(null);
   const [error, setError] = useState<string>("");
   const [scannedAt, setScannedAt] = useState<Date | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [breedChoice, setBreedChoice] = useState<FieldChoice>("replace");
+  const [colorChoice, setColorChoice] = useState<FieldChoice>("replace");
+  const [saving, setSaving] = useState(false);
+
+  function openConfirm() {
+    if (!result || !selected) return;
+    if (result.confidence < MIN_UPDATE_CONFIDENCE) {
+      toast.warning("Confidence is below 60% — automatic profile updates are disabled for this scan.");
+      return;
+    }
+    setBreedChoice(selected.breed ? "keep" : "replace");
+    setColorChoice(selected.color ? "keep" : "replace");
+    setConfirmOpen(true);
+  }
+
+  async function updatePetProfile() {
+    if (!result || !selected) return;
+    setSaving(true);
+    try {
+      const aiColor = (result.color || "").trim();
+      const patch: Partial<Pet> = {
+        breed_confidence: result.confidence,
+        last_breed_scan_at: (scannedAt ?? new Date()).toISOString(),
+      };
+
+      if (breedChoice === "replace") patch.breed = result.primary_breed;
+      if (breedChoice === "alternative") {
+        const existing = selected.alternative_breeds ? `${selected.alternative_breeds}, ` : "";
+        patch.alternative_breeds = `${existing}${result.primary_breed}`;
+      }
+      if (aiColor && colorChoice === "replace") patch.color = aiColor;
+
+      const { data, error: upErr } = await supabase
+        .from("pets").update(patch).eq("id", selected.id).select("*").single();
+      if (upErr) throw upErr;
+
+      setPets((prev) => prev.map((p) => (p.id === selected.id ? (data as Pet) : p)));
+      setConfirmOpen(false);
+      toast.success("Pet profile updated successfully.");
+    } catch (e) {
+      console.error("[breed] profile update failed", e);
+      toast.error("Unable to update the profile.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+
 
   useEffect(() => {
     let mounted = true;
@@ -290,10 +349,25 @@ function BreedPage() {
                     <div className="mt-4 flex flex-wrap gap-2 text-xs">
                       <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-medium">Coat: {result.coat_type}</span>
                       <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-medium">Size: {result.size_category}</span>
+                      {result.color && (
+                        <span className="px-3 py-1 rounded-full bg-primary/10 text-primary font-medium">Color: {result.color}</span>
+                      )}
                     </div>
                     {result.analysis && <p className="mt-4 text-sm text-muted-foreground">{result.analysis}</p>}
                     {scannedAt && (
                       <p className="mt-3 text-xs text-muted-foreground">Scanned {scannedAt.toLocaleString()}</p>
+                    )}
+                    {selected && (
+                      <div className="mt-5">
+                        <Button onClick={openConfirm} disabled={result.confidence < MIN_UPDATE_CONFIDENCE} className="shadow-glow">
+                          <PencilLine className="h-4 w-4 mr-2" /> Update Pet Profile
+                        </Button>
+                        {result.confidence < MIN_UPDATE_CONFIDENCE && (
+                          <p className="mt-2 text-xs text-destructive">
+                            Confidence is below 60% — profile updates are disabled for this scan.
+                          </p>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -310,7 +384,84 @@ function BreedPage() {
               <AlertTriangle className="h-4 w-4 mt-0.5 text-primary shrink-0" />
               <span>{SAFETY_NOTICE}</span>
             </div>
+
+            <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+              <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>Update Pet Profile</DialogTitle>
+                  <DialogDescription>
+                    Do you want to update this pet's information using AI-generated data?
+                  </DialogDescription>
+                </DialogHeader>
+
+                {result && selected && (
+                  <div className="space-y-5 text-sm">
+                    <div>
+                      <div className="font-semibold mb-1">Breed</div>
+                      <div className="text-muted-foreground">
+                        Current breed: {selected.breed || "—"}<br />
+                        AI result: {result.primary_breed} ({result.confidence}%)
+                      </div>
+                      <RadioGroup
+                        value={breedChoice}
+                        onValueChange={(v) => setBreedChoice(v as FieldChoice)}
+                        className="mt-2"
+                      >
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="keep" id="breed-keep" />
+                          <Label htmlFor="breed-keep">Keep current value</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="replace" id="breed-replace" />
+                          <Label htmlFor="breed-replace">Replace value</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="alternative" id="breed-alt" />
+                          <Label htmlFor="breed-alt">Save as an alternative breed</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+
+                    {(result.color || "").trim() && (
+                      <div>
+                        <div className="font-semibold mb-1">Color</div>
+                        <div className="text-muted-foreground">
+                          Current color: {selected.color || "—"}<br />
+                          AI result: {result.color}
+                        </div>
+                        <RadioGroup
+                          value={colorChoice}
+                          onValueChange={(v) => setColorChoice(v as FieldChoice)}
+                          className="mt-2"
+                        >
+                          <div className="flex items-center gap-2">
+                            <RadioGroupItem value="keep" id="color-keep" />
+                            <Label htmlFor="color-keep">Keep current value</Label>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <RadioGroupItem value="replace" id="color-replace" />
+                            <Label htmlFor="color-replace">Replace value</Label>
+                          </div>
+                        </RadioGroup>
+                      </div>
+                    )}
+
+                    <p className="text-xs text-muted-foreground">
+                      Confidence score and scan date will be saved. All other pet details stay unchanged.
+                    </p>
+                  </div>
+                )}
+
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setConfirmOpen(false)} disabled={saving}>Cancel</Button>
+                  <Button onClick={updatePetProfile} disabled={saving} className="shadow-glow">
+                    {saving ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving…</> : "Confirm update"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </>
+
         )}
       </main>
       <FloatingAssistantButton />

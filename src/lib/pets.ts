@@ -38,6 +38,9 @@ export type Pet = {
   vaccination_status: string | null;
   notes: string | null;
   photo_url: string | null;
+  breed_confidence?: number | null;
+  last_breed_scan_at?: string | null;
+  alternative_breeds?: string | null;
   is_default: boolean;
   created_at: string;
   updated_at: string;

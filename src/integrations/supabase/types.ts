@@ -211,7 +211,9 @@ export type Database = {
         Row: {
           age_text: string | null
           allergies: string | null
+          alternative_breeds: string | null
           breed: string | null
+          breed_confidence: number | null
           color: string | null
           created_at: string
           current_medications: string | null
@@ -219,6 +221,7 @@ export type Database = {
           gender: string | null
           id: string
           is_default: boolean
+          last_breed_scan_at: string | null
           medical_conditions: string | null
           microchip_id: string | null
           name: string
@@ -233,7 +236,9 @@ export type Database = {
         Insert: {
           age_text?: string | null
           allergies?: string | null
+          alternative_breeds?: string | null
           breed?: string | null
+          breed_confidence?: number | null
           color?: string | null
           created_at?: string
           current_medications?: string | null
@@ -241,6 +246,7 @@ export type Database = {
           gender?: string | null
           id?: string
           is_default?: boolean
+          last_breed_scan_at?: string | null
           medical_conditions?: string | null
           microchip_id?: string | null
           name: string
@@ -255,7 +261,9 @@ export type Database = {
         Update: {
           age_text?: string | null
           allergies?: string | null
+          alternative_breeds?: string | null
           breed?: string | null
+          breed_confidence?: number | null
           color?: string | null
           created_at?: string
           current_medications?: string | null
@@ -263,6 +271,7 @@ export type Database = {
           gender?: string | null
           id?: string
           is_default?: boolean
+          last_breed_scan_at?: string | null
           medical_conditions?: string | null
           microchip_id?: string | null
           name?: string
