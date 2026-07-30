@@ -80,7 +80,7 @@ function BreedPage() {
     setSaving(true);
     try {
       const aiColor = (result.color || "").trim();
-      const patch: Record<string, unknown> = {
+      const patch: Partial<Pet> = {
         breed_confidence: result.confidence,
         last_breed_scan_at: (scannedAt ?? new Date()).toISOString(),
       };
