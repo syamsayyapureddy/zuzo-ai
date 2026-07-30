@@ -8,7 +8,7 @@ export type Feature = {
   title: string;
   description: string;
   icon: LucideIcon;
-  to?: "/assistant" | "/pets" | "/nutrition" | "/vaccinations";
+  to?: "/assistant" | "/pets" | "/nutrition" | "/vaccinations" | "/breed-identification";
 };
 
 export const features: Feature[] = [
