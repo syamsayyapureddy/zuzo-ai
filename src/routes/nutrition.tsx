@@ -93,7 +93,10 @@ function NutritionPage() {
             age: petAge(selected),
             weight: selected.weight_kg ? `${selected.weight_kg} kg` : null,
             gender: selected.gender,
+            allergies: selected.allergies,
+            medical_conditions: selected.medical_conditions,
           },
+          instructions: instructions.trim().slice(0, 500) || null,
         }),
       });
       if (!res.ok) {
