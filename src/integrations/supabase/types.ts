@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      breed_scans: {
+        Row: {
+          alternative_breeds: Json
+          analysis: string | null
+          confidence: number | null
+          created_at: string
+          id: string
+          image_url: string
+          pet_id: string | null
+          primary_breed: string | null
+          user_id: string
+        }
+        Insert: {
+          alternative_breeds?: Json
+          analysis?: string | null
+          confidence?: number | null
+          created_at?: string
+          id?: string
+          image_url: string
+          pet_id?: string | null
+          primary_breed?: string | null
+          user_id: string
+        }
+        Update: {
+          alternative_breeds?: Json
+          analysis?: string | null
+          confidence?: number | null
+          created_at?: string
+          id?: string
+          image_url?: string
+          pet_id?: string | null
+          primary_breed?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "breed_scans_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           content: string
