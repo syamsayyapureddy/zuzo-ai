@@ -370,8 +370,6 @@ function BreedPage() {
                       </div>
                     )}
                   </div>
-
-                  </div>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-3 mt-6">
